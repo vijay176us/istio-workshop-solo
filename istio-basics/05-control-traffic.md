@@ -409,7 +409,7 @@ kubectl apply -f labs/05/web-api-gw-vs-retries-timeout.yaml -n istio-system
 
 Circuit breaking is an important pattern for creating resilient microservice applications. Circuit breaking allows you to limit the impact of failures and network delays, which are often outside of your control when making requests to dependent services. Prior to service mesh, you could add logic directly within your code (or your language specific library) to handle situations when the calling service fails to provide the desirable result.  Istio allows you to apply circuit breaking configurations within a destination rule resource, without any need to modify your service code.
 
-Take a look at the `web-api-dr` destination rule as shown in the example that follows. It defines the destination rule for the `web-api` service. Within the traffic policy of the `web-api-dr`, you can specify the connection pool configuration to indicate the maximum number of TCP connections, the maximum number of HTTP requests per connection and set the outlier detection to be three minutes after a single error. When any clients access the `web-api` service, these circuit-breaker behavior will be followed even if the client is *not* the `istio-ingressgateway`.  
+Take a look at the `web-api-dr` destination rule as shown in the example that follows. It defines the destination rule for the `web-api` service. Within the traffic policy of the `web-api-dr`, you can specify the connection pool configuration to indicate the maximum number of TCP connections, the maximum number of HTTP requests per connection and set the outlier detection to be three minutes after a single error. When any clients access the `web-api` service, these circuit-breaker behavior will be followed. 
 
 ```bash
 cat labs/05/web-api-dr-with-cb.yaml
@@ -437,16 +437,152 @@ spec:
       baseEjectionTime: 3m
       maxEjectionPercent: 100
 ```
+
+Note the `web-api-dr` destination rule applies to requests from any client to the `web-api` service in the istioinaction namespace. Do you want to configure the client scope of the destination rule? We will teach how to do that in the Essential badge.
+
 ### Fault Injection
 
+It can be difficult to configure service timeouts and circuit-breaker configurations properly in a distributed microservice application. Istio makes it easier to get these settings correct by enabling you to inject faults into your application without the need to modify your code. With Istio, you can perform chaos testing of your application easily by adding an HTTP delay fault into the `web-api` service for only the Jason user so that the injected fault doesn't affect any other users.
+
+You can inject a 90-second fault delay for 100% of the client requests when the `user` HTTP header value exactly matches the value `Jason`. 
+
+```bash
+cat labs/05/web-api-gw-vs-fault-injection.yaml
+```
+
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-api-gw-vs
+spec:
+  hosts:
+  - "istioinaction.io"
+  gateways:
+  - web-api-gateway
+  http:
+  - fault:
+      delay:
+        fixedDelay: 90s
+        percent: 100
+    match:
+    - headers:
+        user:
+          exact: Jason
+    route:
+    - destination:
+        host: web-api.istioinaction.svc.cluster.local
+        port:
+          number: 8080
+  - route:
+    - destination:
+        host: web-api.istioinaction.svc.cluster.local
+        port:
+          number: 8080
+```
+
+Apply the virtual service resource using the following command:
+
+```bash
+kubectl apply -f labs/05/web-api-gw-vs-fault-injection.yaml -n istio-system
+```
+
+TODO: test the change using the header
 
 ## Controlling Outbound Traffic
 
-### Understand the Default Behavior
+When you use Kubernetes, any application pod can make calls to services that are outside the Kubernetes clueter unless there is a Kubernetes network policy that prevents calling the target service. However, network policies are restricted to layer 4 rules which means that they can only allow or restrict access to specific IP addresses. What if you want more control over how applications within the mesh can reach external services using layer 7 policies and more fine-grained attribute policy evaluation?
 
-### 
+By default, Istio allows all outbound traffic to ensure users have a smooth starting experience. If you choose to restrict all outbound traffic across the mesh, you can update your Istio install to enable restricted outbound traffic access so that only registered external services are allowed. This is highly recommended.
 
-Question: Do you want to securely restrict all other pods from accessing the external service? Do you always want traffic to external service go through the egress gateway? We will cover this in the Istio Expert workshop.
+1. Check the default Istio installation configuration for outboundTrafficPolicy:
+
+```bash
+kubectl get istiooperator installed-state -n istio-system -o jsonpath='{.spec.meshConfig.outboundTrafficPolicy.mode}'
+```
+
+The output should be empty, which means the default mode `ALLOW_ANY` is used, which allows all services in the mesh to access any external service.
+
+2. Update your Istio installation so that only registered external services are allowed, using the `meshConfig.outboundTrafficPolicy.mode` configuration:
+
+```bash
+istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=REGISTRY_ONLY -y
+```
+
+3. Confirm the new configuration:
+
+```bash
+kubectl get istiooperator installed-state -n istio-system -o jsonpath='{.spec.meshConfig.outboundTrafficPolicy.mode}'
+```
+
+4. Send some traffic to the `web-api` service. You should see the request to `purchase-history` to fail because all outbound traffic is blocked by default yet the v2 of `purchase-history` service connects to the `jsonplaceholder.typicode.com` service.
+
+
+
+Check logs of purchase-history or recommendation?
+
+5. Istio has the ability to selectively access external services using a Service Entry resource. A Service Entry allows you to bring a service that is external to the mesh and make it accessible by services within the mesh. In other words, through service entries, you can bring external services as participants in the mesh. You can create the following service entry resource for the `jsonplaceholder.typicode.com` service:
+
+
+```bash
+cat labs/05/typicode-se.yaml
+```
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: typicode-svc-https
+spec:
+  hosts:
+  - jsonplaceholder.typicode.com
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
+  resolution: DNS
+```
+
+Apply the service entry resource into the `istioinaction` namespace:
+
+```bash
+kubectl apply -f labs/05/typicode-se.yaml -n istioinaction
+```
+
+6. Send some requests to `web-api` service
+
+7. Another important benefit of importing external services through service entries in Istio is that you can use Istio routing rules with external services to define retries, timeouts, and fault injection policies. For example, you can set a timeout rule on calls to the `jsonplaceholder.typicode.com` service as shown below:
+
+```bash
+cat labs/05/typicode-vs.yaml
+```
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: typicode-vs
+spec:
+  hosts:
+    - "jsonplaceholder.typicode.com"
+  https:
+  - timeout: 3s
+    route:
+      - destination:
+          host: "jsonplaceholder.typicode.com"
+        weight: 100
+```
+
+Run the following command to apply the virtual service:
+
+```bash
+kubectl apply -f labs/05/typicode-vs.yaml -n istioinaction
+```
+### Questions
+
+Do you want to securely restrict which pods can access a given external service? Should you send traffic to your external service through the istio-egressgateway? We will cover this in the Istio Expert workshop.
 
 ## Conclusion
 
