@@ -380,9 +380,63 @@ kubectl apply -f labs/05/web-api-gw-vs.yaml -n istio-system
 
 ### Timeouts
 
+Istio has built-in support for timeouts with client requests to services within the mesh. The default timeout for HTTP request in Istio is disabled, which means no timeout. You can overwrite the default timeout setting of a service route within the route rule for a virtual service resource. For example, in the route rule within the `web-api-gw-vs` resource below, you can add the following `timeout` configuration to set the timeout of the route to the `web-api` service on port `8080`, along with 3 retry attempts with each retry timeout after 3 seconds.
+
+```bash
+cat labs/05/web-api-gw-vs-retries-timeout.yaml
+```
+
+```
+  http:
+  - route:
+    - destination:
+        host: web-api.istioinaction.svc.cluster.local
+        port:
+          number: 8080
+    retries:
+      attempts: 3
+      perTryTimeout: 3s
+    timeout: 10s
+```
+
+Apply the resource to see the new retries and timeout configuration in action:
+
+```bash
+kubectl apply -f labs/05/web-api-gw-vs-retries-timeout.yaml -n istio-system
+```
 
 ### Circuit Breakers
 
+Circuit breaking is an important pattern for creating resilient microservice applications. Circuit breaking allows you to limit the impact of failures and network delays, which are often outside of your control when making requests to dependent services. Prior to service mesh, you could add logic directly within your code (or your language specific library) to handle situations when the calling service fails to provide the desirable result.  Istio allows you to apply circuit breaking configurations within a destination rule resource, without any need to modify your service code.
+
+Take a look at the `web-api-dr` destination rule as shown in the example that follows. It defines the destination rule for the `web-api` service. Within the traffic policy of the `web-api-dr`, you can specify the connection pool configuration to indicate the maximum number of TCP connections, the maximum number of HTTP requests per connection and set the outlier detection to be three minutes after a single error. When any clients access the `web-api` service, these circuit-breaker behavior will be followed even if the client is *not* the `istio-ingressgateway`.  
+
+```bash
+cat labs/05/web-api-dr-with-cb.yaml
+```
+
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: web-api-dr
+spec:
+  hosts:
+  - "web-api.istioinaction.svc.cluster.local"
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 1
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutive5xxErrors: 1
+      interval: 1s
+      baseEjectionTime: 3m
+      maxEjectionPercent: 100
+```
 ### Fault Injection
 
 
