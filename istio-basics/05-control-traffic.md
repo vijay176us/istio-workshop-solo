@@ -226,7 +226,64 @@ Awesome! You are getting a valid response this time, from v2! If you rerun the a
 }
 ```
 
-TODO: add header based routing
+### Selectively Route Requests
+
+You want to test the v2 of the `purchase-history` service only from a specific test user while all other requests continue to route to the v1 version of the `purchase-history` service. With Istio's virtual service resource, you can specify HTTP routing rules based on HTTP requests such as header information. In the `purchase-history-vs-all-v1-header-v2.yaml` file shown in the following example, you will see that an HTTP route rule has been defined to route requests from clients using `user: Jason` header to the v2 of the `purchase-history` service. All other client requests will continue to use the v1 subset of the `purchase-history` service:
+
+```bash
+cat labs/05/purchase-history-vs-all-v1-header-v2.yaml
+```
+
+Review the changes of the `purchase-history-vs` virtual service resource:
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: purchase-history-vs
+spec:
+  hosts:
+  - purchase-history.istioinaction.svc.cluster.local
+  http:
+  - match:
+    - headers:
+        user:
+          exact: Jason
+    route:
+    - destination:
+        host: purchase-history.istioinaction.svc.cluster.local
+        subset: v2
+        port:
+          number: 8080  
+  - route:
+    - destination:
+        host: purchase-history.istioinaction.svc.cluster.local
+        subset: v1
+        port:
+          number: 8080
+      weight: 100
+```
+
+Apply the changes to your mesh using this command:
+
+```bash
+kubectl apply -f labs/05/purchase-history-vs-all-v1-header-v2.yaml -n istioinaction
+```
+
+Send some traffic to the `web-api` service through the `istio-ingressgateway`:
+
+```bash
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: jason" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+```
+
+You will get `Hello From Purchase History (v1)!` in the response. Why is that? Recall we configured *exact* in `exact: Jason` earlier.  Change the command using `user: Jason` instead:
+
+```bash
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: Jason" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+```
+
+You should see `Hello From Purchase History (v2)!` in the response! Feel free to send a few more requests. Based on your routing rule configuration, Istio made sure that requests with header `user: Jason` always route to the v2 of the `purchase-history` service while all other requests continue to route to v1 of the `purchase-history` service. 
+
 ## Canary Testing
 
 You have dark launched and did some basic testing of the v2 of the `purchase-history` service. You want to canary test a small percentage of requests to the new version to determine whether ther are problems before routing all traffic to the new version. Canary tests are often performed to ensure the new version of the service not only functions properly but also doesn't cause any degradation in performance or reliability.
