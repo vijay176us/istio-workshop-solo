@@ -272,6 +272,9 @@ kubectl apply -f labs/05/purchase-history-vs-all-v1-header-v2.yaml -n istioinact
 
 Send some traffic to the `web-api` service through the `istio-ingressgateway`:
 
+<!--bash
+sleep 2
+-->
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: jason" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```
@@ -410,10 +413,10 @@ When you build a distributed application, it is critical to ensure the services 
 
 ### Retries
 
-Istio has support to program retries for your services in the mesh without you specifying any changes to your code. By default, client requests to each of your services in the mesh will be retried twice. What if you want a different retries per route for some of your virtual services? You can adjust the number of retries or disable them altogether when automatic retries don't make sense for your services. Display the content of the `web-api-gw-vs.yaml:
+Istio has support to program retries for your services in the mesh without you specifying any changes to your code. By default, client requests to each of your services in the mesh will be retried twice. What if you want a different retries per route for some of your virtual services? You can adjust the number of retries or disable them altogether when automatic retries don't make sense for your services. Display the content of the `web-api-gw-vs-retries.yaml:
 
 ```bash
-cat labs/05/web-api-gw-vs.yaml
+cat labs/05/web-api-gw-vs-retries.yaml
 ```
 
 Note the number of retries configuration is for this particular route, from the `istio-ingressgateway` to the `web-api` service on port `8080`:
@@ -432,9 +435,10 @@ Note the number of retries configuration is for this particular route, from the 
 Apply the virtual service resource to the `istio-system` namespace. Note: you don't deploy this resource to the `istioinaction` namespace because the referred gateway is `web-api-gateway` without any namespace scoping and the `web-api-gateway` gateway resource is deployed to the `istio-system` namespace. 
 
 ```bash
-kubectl apply -f labs/05/web-api-gw-vs.yaml -n istio-system
+kubectl apply -f labs/05/web-api-gw-vs-retries.yaml -n istio-system
 ```
 
+TODO: add validation steps.  Note: this doesn't work in Istio 1.10 for me.
 ### Timeouts
 
 Istio has built-in support for timeouts with client requests to services within the mesh. The default timeout for HTTP request in Istio is disabled, which means no timeout. You can overwrite the default timeout setting of a service route within the route rule for a virtual service resource. For example, in the route rule within the `web-api-gw-vs` resource below, you can add the following `timeout` configuration to set the timeout of the route to the `web-api` service on port `8080`, along with 3 retry attempts with each retry timeout after 3 seconds.
@@ -456,11 +460,56 @@ cat labs/05/web-api-gw-vs-retries-timeout.yaml
     timeout: 10s
 ```
 
-Apply the resource to see the new retries and timeout configuration in action:
+Apply the resource in the `istio-system` namespace:
 
 ```bash
 kubectl apply -f labs/05/web-api-gw-vs-retries-timeout.yaml -n istio-system
 ```
+
+In order to observe the number of retry attempts and timeouts in action, you can add some error to the `web-api` service such as 50% error rate, with error delay of 4 seconds and 503 error code.
+
+```
+cat labs/05/web-api.yaml
+```
+
+
+```
+        - name: "ERROR_CODE"
+          value: "503"
+        - name: "ERROR_RATE"
+          value: "0.5"
+        - name: "ERROR_TYPE"
+          value: "delay"
+        - name: "ERROR_DELAY"
+          value: "4s"
+```
+
+Deploy the updated `web-api` service:
+
+```bash
+kubectl apply -f labs/05/web-api.yaml -n istioinaction
+```
+
+Send some traffic to the `web-api` service:
+
+```bash
+for i in {1..2}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
+```
+You will see both requests succeed while some request(s) may have a delay of 4 seconds. This is because you added the 50% error rate and 4 second delays added to the `web-api` service and Istio retried the request automatically if the first request failed. If you check the logs of the `web-api` service, you will see the retries:
+
+```bash
+kubectl logs deploy/web-api -n istioinaction | grep x-envoy-attempt-count
+```
+
+In the log shown below, the first request was successful without any retry while the second request failed and was retried automatically:
+
+```
+x-envoy-attempt-count: 1
+x-envoy-attempt-count: 1"
+x-envoy-attempt-count: 2
+```
+
+Note: The error code has to be `503` for Istio to retry the requests. If you change the `ERROR_CODE` to `500` in the `web-api.yaml`, redeploy the updated `web-api.yaml` file and send some request, you will get error 50% of the times.
 
 ### Circuit Breakers
 
