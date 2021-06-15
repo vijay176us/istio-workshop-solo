@@ -1,6 +1,6 @@
 # Lab 1 :: Install Istio
 
-One of the quickest way to get started with Istio is to leverage the demo profile. The demo profile is designed to showcase Istio functionality with modest resource requirements. The demo profile contains Istio control plane (also called Istiod), Istio ingress-gateway and egress-gateway, and a few addon components. In this lab, you will install Istio with the demo profile. You will validate the installation is successfully and examinate the installation artifacts.
+One of the quickest way to get started with Istio is to leverage the demo profile. The demo profile is designed to showcase Istio functionality with modest resource requirements. The demo profile contains Istio control plane \(also called Istiod\), Istio ingress-gateway and egress-gateway, and a few addon components. In this lab, you will install Istio with the demo profile. You will validate the installation is successfully and examinate the installation artifacts.
 
 ## Download Istio
 
@@ -16,11 +16,7 @@ Add istioctl client to your path:
 cd istio-1.10.0
 export PATH=$PWD/bin:$PATH
 ```
-<!--bash
-pushd /usr/local/bin
-  ln -s $(which istioctl)
-popd
--->
+
 Check istioctl version:
 
 ```bash
@@ -50,16 +46,13 @@ istioctl install --set profile=demo -y
 {% hint style="info" %}
 If your Kubernetes environment can only support Kubernetes Service of type `NodePort`, configure your Istio ingress gateway to use type `NodePort`
 
-```
+```text
 istioctl install --set profile=demo -y --set values.gateways.istio-ingressgateway.type=NodePort
 ```
-
 {% endhint %}
 
-Check out the resources installed by Istio:
-<!--bash
-kubectl wait --for=condition=Ready pod --all -n istio-system
--->
+Check out the resources installed by Istio: 
+
 ```bash
 kubectl get all,cm,secrets -n istio-system
 ```
@@ -83,36 +76,34 @@ Istio telemetry addons are shipped as samples because these addons are optimized
 ```bash
 kubectl apply -f samples/addons
 ```
-<!--bash
-kubectl wait --for=condition=Ready pod --all -n istio-system
--->
-If you hit an error like below, rerun the above command to ensure the `samples/addons` are applied to your Kubernetes cluster. The error below could happen when you attempt to install any `MonitoringDashboard` custom resource before the `MonitoringDashboard` custom resource definition (CRD) is installed.
 
-```
+If you hit an error like below, rerun the above command to ensure the `samples/addons` are applied to your Kubernetes cluster. The error below could happen when you attempt to install any `MonitoringDashboard` custom resource before the `MonitoringDashboard` custom resource definition \(CRD\) is installed.
+
+```text
 unable to recognize "samples/addons/kiali.yaml": no matches for kind "MonitoringDashboard" in version "monitoring.kiali.io/v1alpha1"
 ```
 
 Verify you can access the Prometheus dashboard:
 
-```
+```text
 istioctl dashboard prometheus
 ```
 
 Verify you can access the Grafana dashboard:
 
-```
+```text
 istioctl dashboard grafana
 ```
 
 Verify you can access the Jaeger dashboard:
 
-```
+```text
 istioctl dashboard jaeger
 ```
 
 Verify you can access the Kiali dashboard:
 
-```
+```text
 istioctl dashboard kiali
 ```
 
@@ -120,8 +111,5 @@ You will not see much telemetry data from any of these dashboards, as we don't h
 
 ## Next lab
 
-Congratulations, you have installed Istio control plane (Istiod), Istio ingress-gateway and egress-gateway and its addon components successfully.  We'll learn to expose and secure your services to Istio ingress gateway in the [next lab](./02-secure-service-ingress.md).
-
-
-
+Congratulations, you have installed Istio control plane \(Istiod\), Istio ingress-gateway and egress-gateway and its addon components successfully. We'll learn to expose and secure your services to Istio ingress gateway in the [next lab](02-secure-service-ingress.md).
 

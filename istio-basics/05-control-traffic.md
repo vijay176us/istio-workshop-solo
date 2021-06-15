@@ -8,15 +8,15 @@ You may find the v1 of the `purchase-history` service is rather boring as it alw
 
 Dark launch allows you to deploy and test a new version of a service while minimizing the impact to users, e.g. you can keep the new version of the service in the dark. Using a dark launch appoach enables you to deliver new functions rapidly with reduced risk. Istio allows you to preceisely control how new versions of services are rolled out without the need to make any code change to your services or redeploy your services.
 
-You have v2 of the `purchase-history` service ready in the `labs/05/purchase-history-v2.yaml` file. 
+You have v2 of the `purchase-history` service ready in the `labs/05/purchase-history-v2.yaml` file.
 
 ```bash
 cat labs/05/purchase-history-v2.yaml
 ```
 
-The main change is the `purchase-history-v2` deployment name  and the `version:v2` labels, along with the `fake-service:v2` image and the newly added `EXTERNAL_SERVICE_URL` environment variable. The `purchase-history-v2` pod establishes the connection to the external service at startup time and obtain a random response from the external service when clients call the v2 of the `purchase-history` service.
+The main change is the `purchase-history-v2` deployment name and the `version:v2` labels, along with the `fake-service:v2` image and the newly added `EXTERNAL_SERVICE_URL` environment variable. The `purchase-history-v2` pod establishes the connection to the external service at startup time and obtain a random response from the external service when clients call the v2 of the `purchase-history` service.
 
-```
+```text
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -56,9 +56,9 @@ spec:
         imagePullPolicy: Always
 ```
 
-Should you deploy the `labs/05/purchase-history-v2.yaml` to your Kubernetes cluster?  How much percentage of the traffic will visit v1 and v2 of the `purchase-history` services? Because both of the deployments have `replicas: 1`, you will see 50% traffic goes to v1 and 50% traffic goes to v2. This is not what you wanted because you haven't had chance to test v2 in your Kubernetes cluster yet.
+Should you deploy the `labs/05/purchase-history-v2.yaml` to your Kubernetes cluster? How much percentage of the traffic will visit v1 and v2 of the `purchase-history` services? Because both of the deployments have `replicas: 1`, you will see 50% traffic goes to v1 and 50% traffic goes to v2. This is not what you wanted because you haven't had chance to test v2 in your Kubernetes cluster yet.
 
-You can use Istio's networking resources to dark launch the v2 of the `purchase-history` service. Virtual Service provides you with the ability to configure a list of routing rules that control how the Envoy proxies of the client routes requests to a given service within the service mesh. The client could be Istio's ingress gateway or any of your service in the mesh.  In lab 02, when the client is `istio-ingressgateway`, the virtual service is bound to the `web-api-gateway` gateway. If you recall the Kiali graph for our application from the prior labs, the client for the `purchase-history` service is the `recommendation` service.
+You can use Istio's networking resources to dark launch the v2 of the `purchase-history` service. Virtual Service provides you with the ability to configure a list of routing rules that control how the Envoy proxies of the client routes requests to a given service within the service mesh. The client could be Istio's ingress gateway or any of your service in the mesh. In lab 02, when the client is `istio-ingressgateway`, the virtual service is bound to the `web-api-gateway` gateway. If you recall the Kiali graph for our application from the prior labs, the client for the `purchase-history` service is the `recommendation` service.
 
 Destination rule allows you to define configurations of policies that are applied to a request after the routing rules are enforced as defined in the destination virtual service. In addition, destination rule is also used to define the set of Kubernetes pods that belong to a subset grouping, for example multiple versions of a service, which are called "subsets" in Istio.
 
@@ -68,7 +68,7 @@ You can review the virtual service resource for the `purchase-history` service t
 cat labs/05/purchase-history-vs-all-v1.yaml
 ```
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -92,7 +92,7 @@ Also review the destination rule resource for the `purchase-history` service tha
 cat labs/05/purchase-history-dr.yaml
 ```
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -121,17 +121,15 @@ After you have configured Istio to control 100% of traffic to `purchase-history`
 kubectl apply -f labs/05/purchase-history-v2.yaml -n istioinaction
 ```
 
-Confirm the new v2 `purchase-history` pod has reached running:
-<!--bash
-kubectl wait --for=condition=Ready pod -l app=purchase-history -n istioinaction
--->
+Confirm the new v2 `purchase-history` pod has reached running: 
+
 ```bash
 kubectl get pods -n istioinaction -l app=purchase-history
 ```
 
 You should see both v1 and v2 are running with its own sidecar proxy.
 
-```
+```text
 NAME                                   READY   STATUS    RESTARTS   AGE
 purchase-history-v1-55989d4c56-vv5d4   2/2     Running   0          2d4h
 purchase-history-v2-74886f799f-lgzfn   2/2     Running   0          4m
@@ -145,7 +143,7 @@ kubectl logs deploy/purchase-history-v2 -n istioinaction
 
 Note the `connection refused` error at the beginning of the log during the service initialization:
 
-```
+```text
 2021-06-11T17:47:59.776Z [INFO]  Starting service: name=purchase-history-v2 upstreamURIs= upstreamWorkers=1 listenAddress=0.0.0.0:8080 service type=http
 Unable to connect to the external service:  Get "https://jsonplaceholder.typicode.com/posts": dial tcp 104.21.41.57:443: connect: connection refused
 2021-06-11T17:47:59.804Z [INFO]  Adding handler for UI static files
@@ -153,17 +151,17 @@ Unable to connect to the external service:  Get "https://jsonplaceholder.typicod
 2021-06-11T17:48:32.473Z [INFO]  Handle inbound request: request="GET / HTTP/1.1
 ```
 
-hmm, we need to debug this problem!  Generate some load on the `web-api` service to ensure your users are not impacted by deploying of the v2 of the `purchase-history` service:
+hmm, we need to debug this problem! Generate some load on the `web-api` service to ensure your users are not impacted by deploying of the v2 of the `purchase-history` service:
 
 ```bash
 for i in {1..10}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
 
-You will see all of the 10 responses from `purchase-history` are from v1 of the service.  This is great!  We introduced the problematic v2 of the service but thankfully it didn't impact any of the behavior of the existing requests.  
+You will see all of the 10 responses from `purchase-history` are from v1 of the service. This is great! We introduced the problematic v2 of the service but thankfully it didn't impact any of the behavior of the existing requests.
 
-Recall the `v2` of the `purchase-history` service added some code to call the external service and requires the ability for the pod to connect to the external service during initialization. By default in Istio, the `istio-proxy` starts in parallel with the application container (`purchase-history` here in our example) so it is possible that the application container reaches running before `istio-proxy` fully starts thus unable to connect to anything outside of the cluster.
+Recall the `v2` of the `purchase-history` service added some code to call the external service and requires the ability for the pod to connect to the external service during initialization. By default in Istio, the `istio-proxy` starts in parallel with the application container \(`purchase-history` here in our example\) so it is possible that the application container reaches running before `istio-proxy` fully starts thus unable to connect to anything outside of the cluster.
 
-How can we solve this problem and ensure the application container can connect to services outside of the cluster during the container start time? The `holdApplicationUntilProxyStarts` configuration is introduced in Istio to solve this problem.  Let us add this configuration to the pod annotation of v2 of the `purchase-history` to use it:
+How can we solve this problem and ensure the application container can connect to services outside of the cluster during the container start time? The `holdApplicationUntilProxyStarts` configuration is introduced in Istio to solve this problem. Let us add this configuration to the pod annotation of v2 of the `purchase-history` to use it:
 
 ```bash
 cat labs/05/purchase-history-v2-updated.yaml
@@ -171,7 +169,7 @@ cat labs/05/purchase-history-v2-updated.yaml
 
 Through the `holdApplicationUntilProxyStarts` annotation below, you have configured the v2 of `purchase-history` pod to delay starting until the `istio-proxy` container reaches the `Running` status:
 
-```
+```text
   template:
     metadata:
       labels:
@@ -196,21 +194,19 @@ kubectl logs deploy/purchase-history-v2 -n istioinaction
 
 You will see we are able to connect to the external service in the log:
 
-```
+```text
 2021-06-11T18:13:03.573Z [INFO]  Able to connect to : https://jsonplaceholder.typicode.com/posts=<unknown>
 ```
 
-Test the v2 service:
-<!--bash
-sleep 2
--->
+Test the v2 service: 
+
 ```bash
 kubectl exec deploy/purchase-history-v2 -n istioinaction -c istio-proxy -- curl -s localhost:8080
 ```
 
 Awesome! You are getting a valid response this time, from v2! If you rerun the above command, you will notice a slightly different body from `purchase-history-v2` each time.
 
-```
+```text
 {
   "name": "purchase-history-v2",
   "uri": "/",
@@ -236,7 +232,7 @@ cat labs/05/purchase-history-vs-all-v1-header-v2.yaml
 
 Review the changes of the `purchase-history-vs` virtual service resource:
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -272,20 +268,17 @@ kubectl apply -f labs/05/purchase-history-vs-all-v1-header-v2.yaml -n istioinact
 
 Send some traffic to the `web-api` service through the `istio-ingressgateway`:
 
-<!--bash
-sleep 2
--->
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: jason" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```
 
-You will get `Hello From Purchase History (v1)!` in the response. Why is that? Recall we configured *exact* in `exact: Jason` earlier.  Change the command using `user: Jason` instead:
+You will get `Hello From Purchase History (v1)!` in the response. Why is that? Recall we configured _exact_ in `exact: Jason` earlier. Change the command using `user: Jason` instead:
 
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: Jason" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```
 
-You should see `Hello From Purchase History (v2)!` in the response! Feel free to send a few more requests. Based on your routing rule configuration, Istio made sure that requests with header `user: Jason` always route to the v2 of the `purchase-history` service while all other requests continue to route to v1 of the `purchase-history` service. 
+You should see `Hello From Purchase History (v2)!` in the response! Feel free to send a few more requests. Based on your routing rule configuration, Istio made sure that requests with header `user: Jason` always route to the v2 of the `purchase-history` service while all other requests continue to route to v1 of the `purchase-history` service.
 
 ## Canary Testing
 
@@ -301,7 +294,7 @@ cat labs/05/purchase-history-vs-20-v2.yaml
 
 You will notice `subset: v2` is added which will get 20% of the traffic while `subset: v1` will get 80% of the traffic:
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -331,11 +324,8 @@ Deploy the updated `purchase-history` virtual service resource:
 kubectl apply -f labs/05/purchase-history-vs-20-v2.yaml -n istioinaction
 ```
 
-Generate some load on the `web-api` service to check how many requests are served by v1 and v2 of the `purchase-history` service. You should see only a few from v2 while the rest from v1. You may be curious why you are not observe an exactly 80%/20% distribution among v1 and v2.  You likely need to have over 100 requests to get the desired 80%/20% weighted version distribution.
+Generate some load on the `web-api` service to check how many requests are served by v1 and v2 of the `purchase-history` service. You should see only a few from v2 while the rest from v1. You may be curious why you are not observe an exactly 80%/20% distribution among v1 and v2. You likely need to have over 100 requests to get the desired 80%/20% weighted version distribution.
 
-<!--bash
-sleep 2
--->
 ```bash
 for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
@@ -350,7 +340,7 @@ cat labs/05/purchase-history-vs-50-v2.yaml
 
 You will notice `subset: v2` is updated to get 50% of the traffic while `subset: v1` will get 50% of the traffic:
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -380,16 +370,14 @@ Deploy the updated `purchase-history` virtual service resource:
 kubectl apply -f labs/05/purchase-history-vs-50-v2.yaml -n istioinaction
 ```
 
-Generate some load on the `web-api` service to check how many requests are served by v1 and v2 of the `purchase-history` service. You should observe *roughly* 50%/50% distribution among the v1 and v2 of the service.
+Generate some load on the `web-api` service to check how many requests are served by v1 and v2 of the `purchase-history` service. You should observe _roughly_ 50%/50% distribution among the v1 and v2 of the service.
 
-<!--bash
-sleep 2
--->
 ```bash
 for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
 
 ### Shift All Traffic to v2
+
 Now you haven't observed any ill effect during your test, you can adjust the routing rules to direct all of the traffic to the canary deployment:
 
 Deploy the updated `purchase-history` virtual service resource:
@@ -400,9 +388,6 @@ kubectl apply -f labs/05/purchase-history-vs-all-v2.yaml -n istioinaction
 
 Generate some load on the `web-api` service, you should only see traffic to the v2 of the `purchase-history` service.
 
-<!--bash
-sleep 2
--->
 ```bash
 for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
@@ -413,7 +398,7 @@ When you build a distributed application, it is critical to ensure the services 
 
 ### Retries
 
-Istio has support to program retries for your services in the mesh without you specifying any changes to your code. By default, client requests to each of your services in the mesh will be retried twice. What if you want a different retries per route for some of your virtual services? You can adjust the number of retries or disable them altogether when automatic retries don't make sense for your services. Display the content of the `web-api-gw-vs-retries.yaml:
+Istio has support to program retries for your services in the mesh without you specifying any changes to your code. By default, client requests to each of your services in the mesh will be retried twice. What if you want a different retries per route for some of your virtual services? You can adjust the number of retries or disable them altogether when automatic retries don't make sense for your services. Display the content of the \`web-api-gw-vs-retries.yaml:
 
 ```bash
 cat labs/05/web-api-gw-vs-retries.yaml
@@ -421,7 +406,7 @@ cat labs/05/web-api-gw-vs-retries.yaml
 
 Note the number of retries configuration is for this particular route, from the `istio-ingressgateway` to the `web-api` service on port `8080`:
 
-```
+```text
   http:
   - route:
     - destination:
@@ -432,13 +417,14 @@ Note the number of retries configuration is for this particular route, from the 
     attempts: 0
 ```
 
-Apply the virtual service resource to the `istio-system` namespace. Note: you don't deploy this resource to the `istioinaction` namespace because the referred gateway is `web-api-gateway` without any namespace scoping and the `web-api-gateway` gateway resource is deployed to the `istio-system` namespace. 
+Apply the virtual service resource to the `istio-system` namespace. Note: you don't deploy this resource to the `istioinaction` namespace because the referred gateway is `web-api-gateway` without any namespace scoping and the `web-api-gateway` gateway resource is deployed to the `istio-system` namespace.
 
 ```bash
 kubectl apply -f labs/05/web-api-gw-vs-retries.yaml -n istioinaction
 ```
 
-TODO: add validation steps.  Note: this doesn't work in Istio 1.10 for me.
+TODO: add validation steps. Note: this doesn't work in Istio 1.10 for me.
+
 ### Timeouts
 
 Istio has built-in support for timeouts with client requests to services within the mesh. The default timeout for HTTP request in Istio is disabled, which means no timeout. You can overwrite the default timeout setting of a service route within the route rule for a virtual service resource. For example, in the route rule within the `web-api-gw-vs` resource below, you can add the following `timeout` configuration to set the timeout of the route to the `web-api` service on port `8080`, along with 3 retry attempts with each retry timeout after 3 seconds.
@@ -447,7 +433,7 @@ Istio has built-in support for timeouts with client requests to services within 
 cat labs/05/web-api-gw-vs-retries-timeout.yaml
 ```
 
-```
+```text
   http:
   - route:
     - destination:
@@ -468,12 +454,11 @@ kubectl apply -f labs/05/web-api-gw-vs-retries-timeout.yaml -n istioinaction
 
 In order to observe the number of retry attempts and timeouts in action, you can add some error to the `web-api` service such as 50% error rate, with error delay of 4 seconds and 503 error code.
 
-```
+```text
 cat labs/05/web-api.yaml
 ```
 
-
-```
+```text
         - name: "ERROR_CODE"
           value: "503"
         - name: "ERROR_RATE"
@@ -495,7 +480,8 @@ Send some traffic to the `web-api` service:
 ```bash
 for i in {1..2}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
-You will see both requests succeed while some request(s) may have a delay of 4 seconds. This is because you added the 50% error rate and 4 second delays added to the `web-api` service and Istio retried the request automatically if the first request failed. If you check the logs of the `web-api` service, you will see the retries:
+
+You will see both requests succeed while some request\(s\) may have a delay of 4 seconds. This is because you added the 50% error rate and 4 second delays added to the `web-api` service and Istio retried the request automatically if the first request failed. If you check the logs of the `web-api` service, you will see the retries:
 
 ```bash
 kubectl logs deploy/web-api -n istioinaction | grep x-envoy-attempt-count
@@ -503,7 +489,7 @@ kubectl logs deploy/web-api -n istioinaction | grep x-envoy-attempt-count
 
 In the log shown below, the first request was successful without any retry while the second request failed and was retried automatically:
 
-```
+```text
 x-envoy-attempt-count: 1
 x-envoy-attempt-count: 1"
 x-envoy-attempt-count: 2
@@ -519,15 +505,15 @@ kubectl apply -f sample-apps/web-api.yaml -n istioinaction
 
 ### Circuit Breakers
 
-Circuit breaking is an important pattern for creating resilient microservice applications. Circuit breaking allows you to limit the impact of failures and network delays, which are often outside of your control when making requests to dependent services. Prior to service mesh, you could add logic directly within your code (or your language specific library) to handle situations when the calling service fails to provide the desirable result.  Istio allows you to apply circuit breaking configurations within a destination rule resource, without any need to modify your service code.
+Circuit breaking is an important pattern for creating resilient microservice applications. Circuit breaking allows you to limit the impact of failures and network delays, which are often outside of your control when making requests to dependent services. Prior to service mesh, you could add logic directly within your code \(or your language specific library\) to handle situations when the calling service fails to provide the desirable result. Istio allows you to apply circuit breaking configurations within a destination rule resource, without any need to modify your service code.
 
-Take a look at the `web-api-dr` destination rule as shown in the example that follows. It defines the destination rule for the `web-api` service. Within the traffic policy of the `web-api-dr`, you can specify the connection pool configuration to indicate the maximum number of TCP connections, the maximum number of HTTP requests per connection and set the outlier detection to be three minutes after a single error. When any clients access the `web-api` service, these circuit-breaker behavior will be followed. 
+Take a look at the `web-api-dr` destination rule as shown in the example that follows. It defines the destination rule for the `web-api` service. Within the traffic policy of the `web-api-dr`, you can specify the connection pool configuration to indicate the maximum number of TCP connections, the maximum number of HTTP requests per connection and set the outlier detection to be three minutes after a single error. When any clients access the `web-api` service, these circuit-breaker behavior will be followed.
 
 ```bash
 cat labs/05/web-api-dr-with-cb.yaml
 ```
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -563,13 +549,13 @@ kubectl apply -f labs/05/web-api-dr-with-cb.yaml -n istioinaction
 
 It can be difficult to configure service timeouts and circuit-breaker configurations properly in a distributed microservice application. Istio makes it easier to get these settings correct by enabling you to inject faults into your application without the need to modify your code. With Istio, you can perform chaos testing of your application easily by adding an HTTP delay fault into the `web-api` service only for user `Jason` so that the injected fault doesn't affect any other users.
 
-You can inject a 30-second fault delay for 100% of the client requests when the `user` HTTP header value exactly matches the value `Jason`. 
+You can inject a 30-second fault delay for 100% of the client requests when the `user` HTTP header value exactly matches the value `Jason`.
 
 ```bash
 cat labs/05/web-api-gw-vs-fault-injection.yaml
 ```
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -632,19 +618,19 @@ kubectl get istiooperator installed-state -n istio-system -o jsonpath='{.spec.me
 
 The output should be empty. This means the default mode `ALLOW_ANY` is used, which allows services in the mesh to access any external service.
 
-2. Update your Istio installation so that only registered external services are allowed, using the `meshConfig.outboundTrafficPolicy.mode` configuration:
+1. Update your Istio installation so that only registered external services are allowed, using the `meshConfig.outboundTrafficPolicy.mode` configuration:
 
 ```bash
 istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=REGISTRY_ONLY -y
 ```
 
-3. Confirm the new configuration, you should see`REGISTRY_ONLY` from the output:
+1. Confirm the new configuration, you should see`REGISTRY_ONLY` from the output:
 
 ```bash
 kubectl get istiooperator installed-state -n istio-system -o jsonpath='{.spec.meshConfig.outboundTrafficPolicy.mode}'
 ```
 
-4. Send some traffic to the `web-api` service.
+1. Send some traffic to the `web-api` service.
 
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
@@ -652,7 +638,7 @@ curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https:/
 
 You should see the request to `purchase-history` to fail because all outbound traffics are blocked by default but the v2 of `purchase-history` service needs to connect to the `jsonplaceholder.typicode.com` service.
 
-```
+```text
 {
   "name": "web-api",
   "uri": "/",
@@ -695,8 +681,9 @@ Check the pod logs of the v2 of the `purchase-history`:
 kubectl logs deploy/purchase-history-v2 -n istioinaction
 ```
 
-You can see envoy attempted 3 times including the 2 retries by default and the service can't connect to the external service (`jsonplaceholder.typicode.com` here) successfully.
-```
+You can see envoy attempted 3 times including the 2 retries by default and the service can't connect to the external service \(`jsonplaceholder.typicode.com` here\) successfully.
+
+```text
 x-envoy-attempt-count: 3
 x-envoy-internal: true
 x-forwarded-proto: https
@@ -709,20 +696,19 @@ Get "https://jsonplaceholder.typicode.com/posts?id=65": EOF
 2021/06/15 02:23:09 http: panic serving 127.0.0.6:41109: json: error calling MarshalJSON for type json.RawMessage: invalid character 'h' after top-level value
 goroutine 961 [running]:
 net/http.(*conn).serve.func1(0xc000192320)
-	/usr/local/Cellar/go/1.16/libexec/src/net/http/server.go:1824 +0x153
+    /usr/local/Cellar/go/1.16/libexec/src/net/http/server.go:1824 +0x153
 panic(0x9a5de0, 0xc000404480)
 ```
 
 Above is the expected behavior of the `REGISTRY_ONLY` outboundTrafficPolicy mode in Istio. When services in the mesh attempts to access external services, only registered external services are allowed.
 
-5. Istio has the ability to selectively access external services using a Service Entry resource. A Service Entry allows you to bring a service that is external to the mesh and make it accessible by services within the mesh. In other words, through service entries, you can bring external services as participants in the mesh. You can create the following service entry resource for the `jsonplaceholder.typicode.com` service:
-
+1. Istio has the ability to selectively access external services using a Service Entry resource. A Service Entry allows you to bring a service that is external to the mesh and make it accessible by services within the mesh. In other words, through service entries, you can bring external services as participants in the mesh. You can create the following service entry resource for the `jsonplaceholder.typicode.com` service:
 
 ```bash
 cat labs/05/typicode-se.yaml
 ```
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
 metadata:
@@ -744,19 +730,19 @@ Apply the service entry resource into the `istioinaction` namespace:
 kubectl apply -f labs/05/typicode-se.yaml -n istioinaction
 ```
 
-6. Send some traffic to the `web-api` service. You should get the `200` response now.
+1. Send some traffic to the `web-api` service. You should get the `200` response now.
 
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```
 
-7. Another important benefit of importing external services through service entries in Istio is that you can use Istio routing rules with external services to define retries, timeouts, and fault injection policies. For example, you can set a timeout rule on calls to the `jsonplaceholder.typicode.com` service as shown below:
+1. Another important benefit of importing external services through service entries in Istio is that you can use Istio routing rules with external services to define retries, timeouts, and fault injection policies. For example, you can set a timeout rule on calls to the `jsonplaceholder.typicode.com` service as shown below:
 
 ```bash
 cat labs/05/typicode-vs.yaml
 ```
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -777,6 +763,7 @@ Run the following command to apply the virtual service resource:
 ```bash
 kubectl apply -f labs/05/typicode-vs.yaml -n istioinaction
 ```
+
 ### Questions
 
 Do you want to securely restrict which pods can access a given external service? Should you send traffic to your external service through the istio-egressgateway? We will cover this in the Istio Expert workshop.
@@ -784,3 +771,4 @@ Do you want to securely restrict which pods can access a given external service?
 ## Conclusion
 
 A service mesh like Istio has the capabilities that enable you to manage traffic flows within the mesh as well as entering and leaving the mesh. These capabilities allow you to efficiently control rollout and access to new features, and make it possible to build resilient services without having to make complicated changes to your application code.
+
