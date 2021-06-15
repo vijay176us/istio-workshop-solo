@@ -435,7 +435,7 @@ Note the number of retries configuration is for this particular route, from the 
 Apply the virtual service resource to the `istio-system` namespace. Note: you don't deploy this resource to the `istioinaction` namespace because the referred gateway is `web-api-gateway` without any namespace scoping and the `web-api-gateway` gateway resource is deployed to the `istio-system` namespace. 
 
 ```bash
-kubectl apply -f labs/05/web-api-gw-vs-retries.yaml -n istio-system
+kubectl apply -f labs/05/web-api-gw-vs-retries.yaml -n istioinaction
 ```
 
 TODO: add validation steps.  Note: this doesn't work in Istio 1.10 for me.
@@ -463,7 +463,7 @@ cat labs/05/web-api-gw-vs-retries-timeout.yaml
 Apply the resource in the `istio-system` namespace:
 
 ```bash
-kubectl apply -f labs/05/web-api-gw-vs-retries-timeout.yaml -n istio-system
+kubectl apply -f labs/05/web-api-gw-vs-retries-timeout.yaml -n istioinaction
 ```
 
 In order to observe the number of retry attempts and timeouts in action, you can add some error to the `web-api` service such as 50% error rate, with error delay of 4 seconds and 503 error code.
@@ -511,6 +511,12 @@ x-envoy-attempt-count: 2
 
 Note: The error code has to be `503` for Istio to retry the requests. If you change the `ERROR_CODE` to `500` in the `web-api.yaml`, redeploy the updated `web-api.yaml` file and send some request, you will get error 50% of the times.
 
+Restore the normal behavior of the `web-api` service:
+
+```bash
+kubectl apply -f sample-apps/web-api.yaml -n istioinaction
+```
+
 ### Circuit Breakers
 
 Circuit breaking is an important pattern for creating resilient microservice applications. Circuit breaking allows you to limit the impact of failures and network delays, which are often outside of your control when making requests to dependent services. Prior to service mesh, you could add logic directly within your code (or your language specific library) to handle situations when the calling service fails to provide the desirable result.  Istio allows you to apply circuit breaking configurations within a destination rule resource, without any need to modify your service code.
@@ -521,15 +527,13 @@ Take a look at the `web-api-dr` destination rule as shown in the example that fo
 cat labs/05/web-api-dr-with-cb.yaml
 ```
 
-
 ```
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-api-dr
 spec:
-  hosts:
-  - "web-api.istioinaction.svc.cluster.local"
+  host: web-api.istioinaction.svc.cluster.local
   trafficPolicy:
     connectionPool:
       tcp:
@@ -544,18 +548,26 @@ spec:
       maxEjectionPercent: 100
 ```
 
-Note the `web-api-dr` destination rule applies to requests from any client to the `web-api` service in the istioinaction namespace. Do you want to configure the client scope of the destination rule? We will teach how to do that in the Essential badge.
+Apply the resource in the `istioinaction` namespace:
+
+```bash
+kubectl apply -f labs/05/web-api-dr-with-cb.yaml -n istioinaction
+```
+
+#### Questions
+
+1. Can you apply the `web-api-dr-with-cb.yaml` in the `istio-system` namespace?  We will answer this in the workshop.
+2. Note the `web-api-dr` destination rule applies to requests from any client to the `web-api` service in the istioinaction namespace. Do you want to configure the client scope of the destination rule? We will teach how to do that in the Essential badge.
 
 ### Fault Injection
 
-It can be difficult to configure service timeouts and circuit-breaker configurations properly in a distributed microservice application. Istio makes it easier to get these settings correct by enabling you to inject faults into your application without the need to modify your code. With Istio, you can perform chaos testing of your application easily by adding an HTTP delay fault into the `web-api` service for only the Jason user so that the injected fault doesn't affect any other users.
+It can be difficult to configure service timeouts and circuit-breaker configurations properly in a distributed microservice application. Istio makes it easier to get these settings correct by enabling you to inject faults into your application without the need to modify your code. With Istio, you can perform chaos testing of your application easily by adding an HTTP delay fault into the `web-api` service only for user `Jason` so that the injected fault doesn't affect any other users.
 
-You can inject a 90-second fault delay for 100% of the client requests when the `user` HTTP header value exactly matches the value `Jason`. 
+You can inject a 30-second fault delay for 100% of the client requests when the `user` HTTP header value exactly matches the value `Jason`. 
 
 ```bash
 cat labs/05/web-api-gw-vs-fault-injection.yaml
 ```
-
 
 ```
 apiVersion: networking.istio.io/v1beta1
@@ -570,7 +582,7 @@ spec:
   http:
   - fault:
       delay:
-        fixedDelay: 90s
+        fixedDelay: 15s
         percent: 100
     match:
     - headers:
@@ -591,10 +603,20 @@ spec:
 Apply the virtual service resource using the following command:
 
 ```bash
-kubectl apply -f labs/05/web-api-gw-vs-fault-injection.yaml -n istio-system
+kubectl apply -f labs/05/web-api-gw-vs-fault-injection.yaml -n istioinaction
 ```
 
-TODO: test the change using the header
+Send some traffic to the `web-api` service, you should see `200` response code right away:
+
+```bash
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+```
+
+Send some traffic to the `web-api` service with the `user: Jason` header, you should see `200` response code after the 15 seconds delay:
+
+```bash
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: Jason" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+```
 
 ## Controlling Outbound Traffic
 
@@ -608,7 +630,7 @@ By default, Istio allows all outbound traffic to ensure users have a smooth star
 kubectl get istiooperator installed-state -n istio-system -o jsonpath='{.spec.meshConfig.outboundTrafficPolicy.mode}'
 ```
 
-The output should be empty, which means the default mode `ALLOW_ANY` is used, which allows all services in the mesh to access any external service.
+The output should be empty. This means the default mode `ALLOW_ANY` is used, which allows services in the mesh to access any external service.
 
 2. Update your Istio installation so that only registered external services are allowed, using the `meshConfig.outboundTrafficPolicy.mode` configuration:
 
@@ -616,17 +638,82 @@ The output should be empty, which means the default mode `ALLOW_ANY` is used, wh
 istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=REGISTRY_ONLY -y
 ```
 
-3. Confirm the new configuration:
+3. Confirm the new configuration, you should see`REGISTRY_ONLY` from the output:
 
 ```bash
 kubectl get istiooperator installed-state -n istio-system -o jsonpath='{.spec.meshConfig.outboundTrafficPolicy.mode}'
 ```
 
-4. Send some traffic to the `web-api` service. You should see the request to `purchase-history` to fail because all outbound traffic is blocked by default yet the v2 of `purchase-history` service connects to the `jsonplaceholder.typicode.com` service.
+4. Send some traffic to the `web-api` service.
 
+```bash
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+```
 
+You should see the request to `purchase-history` to fail because all outbound traffics are blocked by default but the v2 of `purchase-history` service needs to connect to the `jsonplaceholder.typicode.com` service.
 
-Check logs of purchase-history or recommendation?
+```
+{
+  "name": "web-api",
+  "uri": "/",
+  "type": "HTTP",
+  "ip_addresses": [
+    "10.42.0.50"
+  ],
+  "start_time": "2021-06-15T02:23:09.222368",
+  "end_time": "2021-06-15T02:23:09.361310",
+  "duration": "138.942038ms",
+  "upstream_calls": [
+    {
+      "name": "recommendation",
+      "uri": "http://recommendation:8080",
+      "type": "HTTP",
+      "ip_addresses": [
+        "10.42.0.43"
+      ],
+      "start_time": "2021-06-15T02:23:09.225295",
+      "end_time": "2021-06-15T02:23:09.326935",
+      "duration": "101.640115ms",
+      "upstream_calls": [
+        {
+          "uri": "http://purchase-history:8080",
+          "code": 503,
+          "error": "Error processing upstream request: http://purchase-history:8080/"
+        }
+      ],
+      "code": 500,
+      "error": "Error processing upstream request: http://recommendation:8080/"
+    }
+  ],
+  "code": 500
+}
+```
+
+Check the pod logs of the v2 of the `purchase-history`:
+
+```bash
+kubectl logs deploy/purchase-history-v2 -n istioinaction
+```
+
+You can see envoy attempted 3 times including the 2 retries by default and the service can't connect to the external service (`jsonplaceholder.typicode.com` here) successfully.
+```
+x-envoy-attempt-count: 3
+x-envoy-internal: true
+x-forwarded-proto: https
+x-b3-sampled: 1
+accept: */*
+x-forwarded-for: 10.42.0.1"
+2021-06-15T02:23:09.301Z [INFO]  Sleeping for: duration=-265.972µs
+Get "https://jsonplaceholder.typicode.com/posts?id=65": EOF
+2021-06-15T02:23:09.304Z [INFO]  Finished handling request: duration=3.393441ms
+2021/06/15 02:23:09 http: panic serving 127.0.0.6:41109: json: error calling MarshalJSON for type json.RawMessage: invalid character 'h' after top-level value
+goroutine 961 [running]:
+net/http.(*conn).serve.func1(0xc000192320)
+	/usr/local/Cellar/go/1.16/libexec/src/net/http/server.go:1824 +0x153
+panic(0x9a5de0, 0xc000404480)
+```
+
+Above is the expected behavior of the `REGISTRY_ONLY` outboundTrafficPolicy mode in Istio. When services in the mesh attempts to access external services, only registered external services are allowed.
 
 5. Istio has the ability to selectively access external services using a Service Entry resource. A Service Entry allows you to bring a service that is external to the mesh and make it accessible by services within the mesh. In other words, through service entries, you can bring external services as participants in the mesh. You can create the following service entry resource for the `jsonplaceholder.typicode.com` service:
 
@@ -657,7 +744,11 @@ Apply the service entry resource into the `istioinaction` namespace:
 kubectl apply -f labs/05/typicode-se.yaml -n istioinaction
 ```
 
-6. Send some requests to `web-api` service
+6. Send some traffic to the `web-api` service. You should get the `200` response now.
+
+```bash
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+```
 
 7. Another important benefit of importing external services through service entries in Istio is that you can use Istio routing rules with external services to define retries, timeouts, and fault injection policies. For example, you can set a timeout rule on calls to the `jsonplaceholder.typicode.com` service as shown below:
 
@@ -681,7 +772,7 @@ spec:
         weight: 100
 ```
 
-Run the following command to apply the virtual service:
+Run the following command to apply the virtual service resource:
 
 ```bash
 kubectl apply -f labs/05/typicode-vs.yaml -n istioinaction

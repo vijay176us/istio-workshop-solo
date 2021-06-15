@@ -10,7 +10,7 @@ spec:
   http:
   - fault:
       delay:
-        fixedDelay: 90s
+        fixedDelay: 15s
         percent: 100
     match:
     - headers:

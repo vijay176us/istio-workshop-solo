@@ -3,8 +3,7 @@ kind: DestinationRule
 metadata:
   name: web-api-dr
 spec:
-  hosts:
-  - "web-api.istioinaction.svc.cluster.local"
+  host: web-api.istioinaction.svc.cluster.local
   trafficPolicy:
     connectionPool:
       tcp:
