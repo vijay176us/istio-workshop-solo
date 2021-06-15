@@ -156,7 +156,7 @@ Unable to connect to the external service:  Get "https://jsonplaceholder.typicod
 hmm, we need to debug this problem!  Generate some load on the `web-api` service to ensure your users are not impacted by deploying of the v2 of the `purchase-history` service:
 
 ```bash
-for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
+for i in {1..10}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
 
 You will see all of the 10 responses from `purchase-history` are from v1 of the service.  This is great!  We introduced the problematic v2 of the service but thankfully it didn't impact any of the behavior of the existing requests.  
@@ -205,7 +205,7 @@ Test the v2 service:
 sleep 2
 -->
 ```bash
-kubectl exec deploy/purchase-history-v2 -n istioinaction -c istio-proxy -- curl localhost:8080
+kubectl exec deploy/purchase-history-v2 -n istioinaction -c istio-proxy -- curl -s localhost:8080
 ```
 
 Awesome! You are getting a valid response this time, from v2! If you rerun the above command, you will notice a slightly different body from `purchase-history-v2` each time.
@@ -337,7 +337,7 @@ Generate some load on the `web-api` service to check how many requests are serve
 sleep 2
 -->
 ```bash
-for i in {1..20}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
+for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
 
 ### Shift 50% Traffic to v2
@@ -386,7 +386,7 @@ Generate some load on the `web-api` service to check how many requests are serve
 sleep 2
 -->
 ```bash
-for i in {1..20}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
+for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
 
 ### Shift All Traffic to v2
@@ -404,7 +404,7 @@ Generate some load on the `web-api` service, you should only see traffic to the 
 sleep 2
 -->
 ```bash
-for i in {1..20}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
+for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
 
 ## Resiliency and Chaos Testing
