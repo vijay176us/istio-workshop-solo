@@ -25,13 +25,13 @@ kubectl apply -n istioinaction -f sample-apps/purchase-history-v1.yaml
 kubectl apply -n istioinaction -f sample-apps/sleep.yaml
 ```
 
-After running these commands, we should check the pods running in the istioinaction namespace: 
+3. After running these commands, you should check all of the pods have reached running in the `istioinaction` namespace: 
 
 ```bash
 kubectl get po -n istioinaction
 ```
 
-Wait a few seconds till all of them reach the `Running` status:
+Wait a few seconds till all of them have reached the `Running` status:
 
 ```text
 NAME                                   READY   STATUS    RESTARTS   AGE
@@ -68,10 +68,6 @@ export SECURE_INGRESS_PORT=443
 ```
 
 {% hint style="info" %}
-There is a known issue with MetalLB with MacOS. If you are running this lab on your MacBook, we recommend you to run a vagrant Ubuntu VM on your MacBook and access the `GATEWAY_IP` from your VM's terminal.
-{% endhint %}
-
-{% hint style="info" %}
 If your Istio ingress gateway created a Kubernetes Service of type `NodePort`, use the following commands to set your `GATEWAY_IP`:
 
 ```text
@@ -84,19 +80,21 @@ Set the `INGRESS_PORT` and `SECURE_INGRESS_PORT`:
 export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
 export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')
 ```
+
+There is a known issue with MetalLB with MacOS. If you are running this lab on your MacBook, we recommend you to run a vagrant Ubuntu VM on your MacBook and access the `GATEWAY_IP` from your VM's terminal.
 {% endhint %}
 
 ## Expose our apps
 
-Even though we don't have our apps in the `istioinaction` namespace in the mesh yet, we can still use the Istio ingress gateway to route traffic to them. Using Istio's `Gateway` resource, we can configure what ports should be exposed, what protocol to use etc. Using Istio's `VirtualService` resource, we can configure how to route traffic from the Istio ingress gateway to our `web-api` service.
+Even though you don't have our apps in the `istioinaction` namespace in the mesh yet, you can still use the Istio ingress gateway to route traffic to them. Using Istio's `Gateway` resource, you can configure what ports should be exposed, what protocol to use etc. Using Istio's `VirtualService` resource, you can configure how to route traffic from the Istio ingress gateway to our `web-api` service.
 
-Let's review our `Gateway` resource:
+1. Review the `Gateway` resource:
 
 ```bash
 cat sample-apps/ingress/web-api-gw.yaml
 ```
 
-In addition to the `web-api-gateway` name of the gateway resource, we can configure that port `80` with protocol `HTTP` is exposed for the `istioinaction.io` host for our Istio ingress gateway selected by the `istio: ingressgateway` selector:
+In addition to the `web-api-gateway` name of the gateway resource, you can configure that port `80` with protocol `HTTP` is exposed for the `istioinaction.io` host for our Istio ingress gateway selected by the `istio: ingressgateway` selector:
 
 ```yaml
 apiVersion: networking.istio.io/v1beta1
@@ -115,13 +113,13 @@ spec:
     - "istioinaction.io"
 ```
 
-Let's review our `VirtualService` resource:
+2. Review the `VirtualService` resource:
 
 ```bash
 cat sample-apps/ingress/web-api-gw-vs.yaml
 ```
 
-We can configure that the virtual service is for the `istioinaction.io` host and the `web-api-gateway` gateway resource. When it is the `http` protocol, we want to route to port `8080` of our `web-api` service in the `istioinaction` namespace.
+You can configure that the `VirtualService` resource is for the `istioinaction.io` host and the `web-api-gateway` gateway resource. If it is the `http` protocol, you want the requests to be routed to port `8080` of our `web-api` service in the `istioinaction` namespace.
 
 ```yaml
 apiVersion: networking.istio.io/v1beta1
@@ -141,7 +139,7 @@ spec:
           number: 8080
 ```
 
-Why port number `8080` in the destination route configuration for the `web-api-gw-vs` virtual service resource? Check the service port for the `web-api` service in the `istioinaction` namespace:
+Why port number `8080` in the destination route configuration for the `web-api-gw-vs` `VirtualService` resource? Check the service port for the `web-api` service in the `istioinaction` namespace:
 
 ```bash
 kubectl get service web-api -n istioinaction
@@ -154,7 +152,7 @@ NAME      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
 web-api   ClusterIP   10.1.54.188   <none>        8080/TCP   19d
 ```
 
-Let's apply the `Gateway` and `VirtualService` resource to expose our `web-api` service outside of the Kubernetes cluster:
+3. Apply the `Gateway` and `VirtualService` resource to expose our `web-api` service outside of the Kubernetes cluster:
 
 ```bash
 kubectl -n istioinaction apply -f sample-apps/ingress/
@@ -166,7 +164,7 @@ The Istio ingress gateway will create new routes on the proxy that we should be 
 curl -H "Host: istioinaction.io" http://$GATEWAY_IP:$INGRESS_PORT
 ```
 
-We can query the gateway configuration using the `istioctl proxy-config` command:
+4. Query the gateway configuration using the `istioctl proxy-config` command:
 
 ```bash
 istioctl proxy-config routes deploy/istio-ingressgateway.istio-system
@@ -179,7 +177,7 @@ http.80     istioinaction.io     /*                     web-api-gw-vs.istioinact
             *                    /healthz/ready*
 ```
 
-If we wanted to see an individual route, we can ask for its output as `json` like this:
+If you want to see an individual route, you can ask for its output as `json` like this:
 
 ```bash
 istioctl proxy-config routes deploy/istio-ingressgateway.istio-system --name http.80 -o json
@@ -187,13 +185,15 @@ istioctl proxy-config routes deploy/istio-ingressgateway.istio-system --name htt
 
 ## Secure the inbound traffic
 
-To secure inbound traffic with HTTPS, we need a certificate with the appropriate SAN. Let's create one for `istioinaction.io` in the `istio-system` namespace:
+To secure inbound traffic with HTTPS, you need a certificate with the appropriate SAN and configure the Istio ingress-gateway to use it.
+
+1. Create a TLS secret for `istioinaction.io` in the `istio-system` namespace:
 
 ```bash
 kubectl create -n istio-system secret tls istioinaction-cert --key labs/02/certs/istioinaction.io.key --cert labs/02/certs/istioinaction.io.crt
 ```
 
-We can update the gateway to use this cert:
+2. Update the Istio ingress-gateway to use this cert:
 
 ```bash
 cat labs/02/web-api-gw-https.yaml
@@ -219,13 +219,15 @@ spec:
       credentialName: istioinaction-cert
 ```
 
-Note, we are pointing to the `istioinaction-cert` and **that the cert must be in the same namespace as the ingress gateway deployment**. Even though the `Gateway` resource is in the `istioinaction` namespace, _the cert must be where the gateway is actually deployed_. Since this gateway resource is also called `web-api-gateway`, it will replace our prior `web-api-gateway` configuration for port `80`.
+Note, we are pointing to the `istioinaction-cert` and **that the cert must be in the same namespace as the ingress gateway deployment**. Even though the `Gateway` resource is in the `istioinaction` namespace, _the cert must be where the gateway is actually deployed_. 
+
+3. Apply the `web-api-gw-https.yaml` in the `istioinaction` namespace. Since this gateway resource is also called `web-api-gateway`, it will replace our prior `web-api-gateway` configuration for port `80`.
 
 ```bash
 kubectl -n istioinaction apply -f labs/02/web-api-gw-https.yaml
 ```
 
-Example calling it on the secure `443` port: 
+4. Call the `web-api` service through the Istio ingress-gateway on the secure `443` port: 
 
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
