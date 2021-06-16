@@ -4,26 +4,26 @@ One of the quickest way to get started with Istio is to leverage the demo profil
 
 ## Download Istio
 
-Download the istio release binary:
+1. Download the istio release binary:
 
 ```bash
 curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.10.0 sh -
 ```
 
-Add istioctl client to your path:
+1. Add istioctl client to your path:
 
 ```bash
 cd istio-1.10.0
 export PATH=$PWD/bin:$PATH
 ```
 
-Check istioctl version:
+1. Check istioctl version:
 
 ```bash
 istioctl version
 ```
 
-Check if your Kubernetes environment meets Istio's platform requirement:
+1. Check if your Kubernetes environment meets Istio's platform requirement:
 
 ```bash
 istioctl x precheck
@@ -31,13 +31,13 @@ istioctl x precheck
 
 ## Install Istio
 
-List available installation profiles:
+1. List available installation profiles:
 
 ```bash
 istioctl profile list
 ```
 
-Since this is a get started workshop, let's use the demo profile.
+1. Since this is a get started workshop, you will use the demo profile to install Istio.
 
 ```bash
 istioctl install --set profile=demo -y
@@ -51,19 +51,19 @@ istioctl install --set profile=demo -y --set values.gateways.istio-ingressgatewa
 ```
 {% endhint %}
 
-Check out the resources installed by Istio: 
+1. Check out the resources installed by Istio: 
 
 ```bash
 kubectl get all,cm,secrets,envoyfilters -n istio-system
 ```
 
-Check out Custom Resource Definitions \(CRDs\) installed by Istio:
+1. Check out Custom Resource Definitions \(CRDs\) installed by Istio:
 
 ```bash
 kubectl get crds -n istio-system | grep istio.io
 ```
 
-Verify the installation using the following command:
+1. Verify the installation using the following command:
 
 ```bash
 istioctl verify-install
@@ -90,6 +90,12 @@ If you hit an error like below, rerun the above command to ensure the `samples/a
 unable to recognize "samples/addons/kiali.yaml": no matches for kind "MonitoringDashboard" in version "monitoring.kiali.io/v1alpha1"
 ```
 {% endhint %}
+
+Check if all pods in the `istio-system` have reached running:
+
+```bash
+kubectl get pods -n istio-system
+```
 
 Verify you can access the Prometheus dashboard:
 
