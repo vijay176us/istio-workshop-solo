@@ -311,13 +311,13 @@ You can visualize the services in the mesh in Kiali.
 istioctl dashboard kiali
 ```
 
-2. Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
+1. Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
 
 On the "Namespace" dropdown, select "istioinaction". On the "Display" drop down, select "Traffic Animation" and "Security":
 
 ![Kiali - Enable Options](../.gitbook/assets/kiali-selections.png)
 
-3. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```bash
 for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
@@ -327,7 +327,7 @@ You should observe the service interaction graph with some traffic animation and
 
 ![](../.gitbook/assets/kiali-istioinaction.png)
 
-4. Click on the call graph between `istio-ingressgateway` and `web-api` service. You should see that indeed this call is secured using mTLS along with some HTTP traffic details among the two services:
+1. Click on the call graph between `istio-ingressgateway` and `web-api` service. You should see that indeed this call is secured using mTLS along with some HTTP traffic details among the two services:
 
 ![](../.gitbook/assets/kiali-select-a-link.png)
 
@@ -343,17 +343,17 @@ You can view distributed tracing information using the Jaeger dashboard.
 istioctl dashboard jaeger
 ```
 
-2. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```bash
 for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
 ```
 
-3. Navigate to [http://localhost:16686](http://localhost:16686). On the "Service" dropdown, select "istio-ingressgateway". Click on the "Find Traces" button at the bottom. You should see 10 traces, which are for every single request to the `web-api` service through the Istio's ingress gateway.
+1. Navigate to [http://localhost:16686](http://localhost:16686). On the "Service" dropdown, select "istio-ingressgateway". Click on the "Find Traces" button at the bottom. You should see 10 traces, which are for every single request to the `web-api` service through the Istio's ingress gateway.
 
 ![](../.gitbook/assets/jaeger-traces-ingress-gw.png)
 
-4. Click on one of the traces to view the details of the distributed traces for that request. For example, this request from the picture below has a duration of `6ms` and 6 trace spans among 4 services. Why there are 6 trace spans? You can click on each trace span to learn more information of the trace span. You may notice all trace spans has the same value for the `x-request-id` header. Why? This is how Jaeger knows these trace spans are part of the same request. In order for your services' distributed tracing to work properly in Istio service mesh, the [B-3 trace headers](https://istio.io/latest/docs/tasks/observability/distributed-tracing/overview/#trace-context-propagation) inluding `x-request-id` have to be propogated between your services.
+1. Click on one of the traces to view the details of the distributed traces for that request. For example, this request from the picture below has a duration of `6ms` and 6 trace spans among 4 services. Why there are 6 trace spans? You can click on each trace span to learn more information of the trace span. You may notice all trace spans has the same value for the `x-request-id` header. Why? This is how Jaeger knows these trace spans are part of the same request. In order for your services' distributed tracing to work properly in Istio service mesh, the [B-3 trace headers](https://istio.io/latest/docs/tasks/observability/distributed-tracing/overview/#trace-context-propagation) inluding `x-request-id` have to be propogated between your services.
 
 ![](../.gitbook/assets/jaeger-traces-spans-single-req.png)
 
@@ -367,23 +367,23 @@ You can also view various service metrics from the Grafana dashboard.
 istioctl dashboard grafana
 ```
 
-2. Navigate to [http://localhost:3000](http://localhost:3000). On the left menu, select "Dashboards" \(the icon that has 4 sqares\), then click on the "Manage" menu. On the resulting page, you will view the list of available Istio dashboards:
+1. Navigate to [http://localhost:3000](http://localhost:3000). On the left menu, select "Dashboards" \(the icon that has 4 sqares\), then click on the "Manage" menu. On the resulting page, you will view the list of available Istio dashboards:
 
 ![](../.gitbook/assets/grafana-view-list-dashboards.png)
 
-3. Select the "Istio Control Plane Dashboard" to view the control plane metrics such as version, resource usage, push metrics to the `istio-proxy` containers, etc.
+1. Select the "Istio Control Plane Dashboard" to view the control plane metrics such as version, resource usage, push metrics to the `istio-proxy` containers, etc.
 
 ![](../.gitbook/assets/grafana-control-plane-dashboard.png)
 
-4. Go back to the Istio dashboard folder, and select the "Istio Service Dashboard" to view the services in the Istio mesh metrics.
+1. Go back to the Istio dashboard folder, and select the "Istio Service Dashboard" to view the services in the Istio mesh metrics.
 
-5. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```bash
 for i in {1..20}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
 ```
 
-5. On the "Service" dropdown, select the "web-api.istioinaction.svc.cluster.local" service. You will notice the Istio service dashboard is updated with client and server request metrics. CLick on the "Refresh dashboard" button if needed. Expand the "Client workloads" and "Server Workloads" section to view details for each workload types.
+1. On the "Service" dropdown, select the "web-api.istioinaction.svc.cluster.local" service. You will notice the Istio service dashboard is updated with client and server request metrics. CLick on the "Refresh dashboard" button if needed. Expand the "Client workloads" and "Server Workloads" section to view details for each workload types.
 
 ![](../.gitbook/assets/grafana-service-dashboard.png)
 

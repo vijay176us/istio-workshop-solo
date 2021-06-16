@@ -1,6 +1,6 @@
 # Lab 4 :: Securing Communication Within Istio
 
-In the previous lab, we explored adding services into a mesh. However, when we installed Istio using the demo profile, it has permissive security mode. Istio permissive security setting is useful when you have services that are being moved into the service mesh incrementally by allowing both plain text and mTLS traffic. In this lab, we explore how Istio manages secure communication between services and how to enable strict security communication between services in our sample application.
+In the previous lab, you explored adding services into a mesh. When you installed Istio using the demo profile, it has permissive security mode. Istio permissive security setting is useful when you have services that are being moved into the service mesh incrementally by allowing both plain text and mTLS traffic. In this lab, you will explore how Istio manages secure communication between services and how to enable strict security communication between services in the sample application.
 
 ## Permissive mode
 
@@ -16,7 +16,7 @@ You should see `No resources found` in the output, which means no peer authentic
 
 ## Enable strict mTLS
 
-You can lock down the secure access to all services in the `istioinaction` namespace to require mTLS using a peer authentication policy. Execute this command to define a default policy for the `istioinaction` namespace that updates all of the servers to accept only mTLS traffic:
+You can lock down the secure access to all services in your Istio service mesh to require mTLS using a peer authentication policy. Execute this command to define a default policy for the `istio-system` namespace that updates all of the servers to accept only mTLS traffic:
 
 ```bash
 kubectl apply -n istio-system -f - <<EOF
@@ -45,19 +45,23 @@ istio-system   default   STRICT   84s
 
 Because the `istio-system` namespace is also the Istio mesh configuration root namespace in your environment, this `peerauthentication` policy is the default policy for all of your services in the mesh regardless of which namespaces your services run.
 
-Let us see mTLS in action! First, we want to send some traffic to web-api from a pod that is not part of the Istio service mesh. Deploy the `sleep` service and pod in the default namespace:
+Let us see mTLS in action! 
+
+1. You can send to send some traffic to `web-api` from a pod that is not part of the Istio service mesh. Deploy the `sleep` service and pod in the `default` namespace:
 
 ```bash
 kubectl apply -n default -f sample-apps/sleep.yaml
 ```
 
-Access the `web-api` service from the `sleep` pod in the default namespace: 
+1. Access the `web-api` service from the `sleep` pod in the `default` namespace: 
 
 ```bash
 kubectl exec deploy/sleep -n default -- curl http://web-api.istioinaction:8080/
 ```
 
-The request will fail because the `web-api` service can only be accessed with mutual TLS. The `sleep` pod in the default namespace doesn't have the sidecar proxy so it doesn't have the needed keys and certificates to communicate to the `web-api` service via mutual TLS. Run the same command from the `sleep` pod in the `istioinaction` namespace:
+The request will fail because the `web-api` service can only be accessed with mutual TLS. The `sleep` pod in the `default` namespace doesn't have the sidecar proxy so it doesn't have the needed keys and certificates to communicate to the `web-api` service via mutual TLS. 
+
+1. Run the same command from the `sleep` pod in the `istioinaction` namespace:
 
 ```bash
 kubectl exec deploy/sleep -n istioinaction -- curl http://web-api.istioinaction:8080/
@@ -65,19 +69,25 @@ kubectl exec deploy/sleep -n istioinaction -- curl http://web-api.istioinaction:
 
 You should see the request succeed.
 
-Question: How can you check if a service or namespace is ready to enable the `STRICT` mtls mode? What is the best practice to enable mTLS for your services? We'll cover this topic in our Istio essential workshop.
+### Questions
+
+How can you check if a service or namespace is ready to enable the `STRICT` mtls mode? What is the best practice to enable mTLS for your services? We'll cover this topic in our Istio Essential workshop.
 
 ## Visualize mTLS enforcement in Kiali
 
-You can visualize the services in the mesh in Kiali. Launch Kiali using the command below:
+You can visualize the services in the mesh in Kiali. 
+
+1. Enable access to Kiali using the command below:
 
 ```text
 istioctl dashboard kiali
 ```
 
-Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
+1. Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
 
-On the "Namespace" dropdown, select "istioinaction". On the "Display" drop down, select "Traffic Animation" and "Security". Let's also generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+On the "Namespace" dropdown, select "istioinaction". On the "Display" drop down, select "Traffic Animation" and "Security". 
+
+1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```text
 for i in {1..200}; 
@@ -86,7 +96,7 @@ for i in {1..200};
 done
 ```
 
-You should observe the service interaction graph with some traffic animation and security badges like below:
+1. You should observe the service interaction graph with some traffic animation and security badges like below:
 
 ![](../.gitbook/assets/kiali-istioinaction-mtls-enforced.png)
 
@@ -108,7 +118,7 @@ ROOTCA            CA             ACTIVE     true           333717302760067951717
 
 The `default` secret containers the public certificate information for the `web-api` service. You can analyze the contents of the default secret using openssl.
 
-First, check the issuer of the public certificate:
+1. Check the issuer of the public certificate:
 
 ```bash
 istioctl proxy-config secret deploy/web-api -n istioinaction -o json | jq '[.dynamicActiveSecrets[] | select(.name == "default")][0].secret.tlsCertificate.certificateChain.inlineBytes' -r | base64 -d | openssl x509 -noout -text | grep 'Issuer'
@@ -118,7 +128,7 @@ istioctl proxy-config secret deploy/web-api -n istioinaction -o json | jq '[.dyn
         Issuer: O = cluster.local
 ```
 
-Second, you can check if the public certificate in the default secret is valid:
+2. Check if the public certificate in the default secret is valid:
 
 ```bash
 istioctl proxy-config secret deploy/web-api -n istioinaction -o json | jq '[.dynamicActiveSecrets[] | select(.name == "default")][0].secret.tlsCertificate.certificateChain.inlineBytes' -r | base64 -d | openssl x509 -noout -text | grep 'Validity' -A 2
@@ -132,7 +142,7 @@ You should see the public certificate is valid and expires in 24 hours:
             Not After : Jun  9 13:39:16 2021 GMT
 ```
 
-Third, you can check if the identity of the client certificate:
+3. Validate the identity of the client certificate is correct:
 
 ```bash
 istioctl proxy-config secret deploy/web-api -n istioinaction -o json | jq '[.dynamicActiveSecrets[] | select(.name == "default")][0].secret.tlsCertificate.certificateChain.inlineBytes' -r | base64 -d | openssl x509 -noout -text | grep 'Subject Alternative Name' -A 1
@@ -222,7 +232,9 @@ When mTLS strict is enabled, you will find the Envoy configuration for the `isti
 istioctl proxy-config all deploy/web-api -n istioinaction -o json
 ```
 
-Question: We have only deployed a few services, why there are so much Envoy configuration for the pod? Istio listens to everything in your Kubernetes cluster by default, we will explore using discovery selectors, `exportTo` and `Sidecar` resources for operating Istio in a production environment in the Istio Essential and Expert workshops.
+### Question
+
+We have only deployed a few services, why there are so much Envoy configuration for the pod? Istio listens to everything in your Kubernetes cluster by default, we will explore using discovery selectors, `exportTo` and `Sidecar` resources for operating Istio in a production environment in the Istio Essential and Expert workshops.
 
 ## Next lab
 

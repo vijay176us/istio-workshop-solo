@@ -16,7 +16,7 @@ You will use the `web-api`, `recommendation` and `purchase-history` services bui
 kubectl create ns istioinaction
 ```
 
-2. Deploy the `web-api`, `recommendation` and `purchase-history` services along with the `sleep` service into the `istioinaction` namespace:
+1. Deploy the `web-api`, `recommendation` and `purchase-history` services along with the `sleep` service into the `istioinaction` namespace:
 
 ```bash
 kubectl apply -n istioinaction -f sample-apps/web-api.yaml
@@ -25,7 +25,7 @@ kubectl apply -n istioinaction -f sample-apps/purchase-history-v1.yaml
 kubectl apply -n istioinaction -f sample-apps/sleep.yaml
 ```
 
-3. After running these commands, you should check all of the pods have reached running in the `istioinaction` namespace: 
+1. After running these commands, you should check all of the pods have reached running in the `istioinaction` namespace: 
 
 ```bash
 kubectl get po -n istioinaction
@@ -113,7 +113,7 @@ spec:
     - "istioinaction.io"
 ```
 
-2. Review the `VirtualService` resource:
+1. Review the `VirtualService` resource:
 
 ```bash
 cat sample-apps/ingress/web-api-gw-vs.yaml
@@ -152,7 +152,7 @@ NAME      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
 web-api   ClusterIP   10.1.54.188   <none>        8080/TCP   19d
 ```
 
-3. Apply the `Gateway` and `VirtualService` resource to expose our `web-api` service outside of the Kubernetes cluster:
+1. Apply the `Gateway` and `VirtualService` resource to expose our `web-api` service outside of the Kubernetes cluster:
 
 ```bash
 kubectl -n istioinaction apply -f sample-apps/ingress/
@@ -164,7 +164,7 @@ The Istio ingress gateway will create new routes on the proxy that we should be 
 curl -H "Host: istioinaction.io" http://$GATEWAY_IP:$INGRESS_PORT
 ```
 
-4. Query the gateway configuration using the `istioctl proxy-config` command:
+1. Query the gateway configuration using the `istioctl proxy-config` command:
 
 ```bash
 istioctl proxy-config routes deploy/istio-ingressgateway.istio-system
@@ -193,7 +193,7 @@ To secure inbound traffic with HTTPS, you need a certificate with the appropriat
 kubectl create -n istio-system secret tls istioinaction-cert --key labs/02/certs/istioinaction.io.key --cert labs/02/certs/istioinaction.io.crt
 ```
 
-2. Update the Istio ingress-gateway to use this cert:
+1. Update the Istio ingress-gateway to use this cert:
 
 ```bash
 cat labs/02/web-api-gw-https.yaml
@@ -221,13 +221,13 @@ spec:
 
 Note, we are pointing to the `istioinaction-cert` and **that the cert must be in the same namespace as the ingress gateway deployment**. Even though the `Gateway` resource is in the `istioinaction` namespace, _the cert must be where the gateway is actually deployed_. 
 
-3. Apply the `web-api-gw-https.yaml` in the `istioinaction` namespace. Since this gateway resource is also called `web-api-gateway`, it will replace our prior `web-api-gateway` configuration for port `80`.
+1. Apply the `web-api-gw-https.yaml` in the `istioinaction` namespace. Since this gateway resource is also called `web-api-gateway`, it will replace our prior `web-api-gateway` configuration for port `80`.
 
 ```bash
 kubectl -n istioinaction apply -f labs/02/web-api-gw-https.yaml
 ```
 
-4. Call the `web-api` service through the Istio ingress-gateway on the secure `443` port: 
+1. Call the `web-api` service through the Istio ingress-gateway on the secure `443` port: 
 
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
