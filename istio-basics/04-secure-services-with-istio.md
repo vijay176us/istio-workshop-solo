@@ -47,13 +47,13 @@ Because the `istio-system` namespace is also the Istio mesh configuration root n
 
 Let us see mTLS in action! 
 
-1. You can send to send some traffic to `web-api` from a pod that is not part of the Istio service mesh. Deploy the `sleep` service and pod in the `default` namespace:
+* You can send to send some traffic to `web-api` from a pod that is not part of the Istio service mesh. Deploy the `sleep` service and pod in the `default` namespace:
 
 ```bash
 kubectl apply -n default -f sample-apps/sleep.yaml
 ```
 
-1. Access the `web-api` service from the `sleep` pod in the `default` namespace: 
+* Access the `web-api` service from the `sleep` pod in the `default` namespace: 
 
 ```bash
 kubectl exec deploy/sleep -n default -- curl http://web-api.istioinaction:8080/
@@ -61,7 +61,7 @@ kubectl exec deploy/sleep -n default -- curl http://web-api.istioinaction:8080/
 
 The request will fail because the `web-api` service can only be accessed with mutual TLS. The `sleep` pod in the `default` namespace doesn't have the sidecar proxy so it doesn't have the needed keys and certificates to communicate to the `web-api` service via mutual TLS. 
 
-1. Run the same command from the `sleep` pod in the `istioinaction` namespace:
+* Run the same command from the `sleep` pod in the `istioinaction` namespace:
 
 ```bash
 kubectl exec deploy/sleep -n istioinaction -- curl http://web-api.istioinaction:8080/
@@ -77,17 +77,17 @@ How can you check if a service or namespace is ready to enable the `STRICT` mtls
 
 You can visualize the services in the mesh in Kiali. 
 
-1. Enable access to Kiali using the command below:
+* Enable access to Kiali using the command below:
 
 ```text
 istioctl dashboard kiali
 ```
 
-1. Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
+* Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
 
 On the "Namespace" dropdown, select "istioinaction". On the "Display" drop down, select "Traffic Animation" and "Security". 
 
-1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+* Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```text
 for i in {1..200}; 
@@ -96,7 +96,7 @@ for i in {1..200};
 done
 ```
 
-1. You should observe the service interaction graph with some traffic animation and security badges like below:
+* You should observe the service interaction graph with some traffic animation and security badges like below:
 
 ![](../.gitbook/assets/kiali-istioinaction-mtls-enforced.png)
 
@@ -118,7 +118,7 @@ ROOTCA            CA             ACTIVE     true           333717302760067951717
 
 The `default` secret containers the public certificate information for the `web-api` service. You can analyze the contents of the default secret using openssl.
 
-1. Check the issuer of the public certificate:
+* Check the issuer of the public certificate:
 
 ```bash
 istioctl proxy-config secret deploy/web-api -n istioinaction -o json | jq '[.dynamicActiveSecrets[] | select(.name == "default")][0].secret.tlsCertificate.certificateChain.inlineBytes' -r | base64 -d | openssl x509 -noout -text | grep 'Issuer'

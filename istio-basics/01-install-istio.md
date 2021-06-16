@@ -4,26 +4,26 @@ One of the quickest way to get started with Istio is to leverage the demo profil
 
 ## Download Istio
 
-1. Download the istio release binary:
+* Download the istio release binary:
 
 ```bash
 curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.10.0 sh -
 ```
 
-1. Add istioctl client to your path:
+* Add istioctl client to your path:
 
 ```bash
 cd istio-1.10.0
 export PATH=$PWD/bin:$PATH
 ```
 
-1. Check istioctl version:
+* Check istioctl version:
 
 ```bash
 istioctl version
 ```
 
-1. Check if your Kubernetes environment meets Istio's platform requirement:
+* Check if your Kubernetes environment meets Istio's platform requirement:
 
 ```bash
 istioctl x precheck
@@ -31,13 +31,13 @@ istioctl x precheck
 
 ## Install Istio
 
-1. List available installation profiles:
+* List available installation profiles:
 
 ```bash
 istioctl profile list
 ```
 
-1. Since this is a get started workshop, you will use the demo profile to install Istio.
+* Since this is a get started workshop, you will use the demo profile to install Istio.
 
 ```bash
 istioctl install --set profile=demo -y
@@ -51,19 +51,19 @@ istioctl install --set profile=demo -y --set values.gateways.istio-ingressgatewa
 ```
 {% endhint %}
 
-1. Check out the resources installed by Istio: 
+* Check out the resources installed by Istio: 
 
 ```bash
 kubectl get all,cm,secrets,envoyfilters -n istio-system
 ```
 
-1. Check out Custom Resource Definitions \(CRDs\) installed by Istio:
+* Check out Custom Resource Definitions \(CRDs\) installed by Istio:
 
 ```bash
 kubectl get crds -n istio-system | grep istio.io
 ```
 
-1. Verify the installation using the following command:
+* Verify the installation using the following command:
 
 ```bash
 istioctl verify-install

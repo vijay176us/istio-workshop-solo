@@ -10,13 +10,13 @@ Verify you're in the correct folder for this lab: `/home/solo/workshops/istio-ba
 
 You will use the `web-api`, `recommendation` and `purchase-history` services built using the [fake service](https://github.com/nicholasjackson/fake-service) as our sample application. The `web-api` service calls the `recommendation` service via HTTP and the `recommendation` service calls the `purchase-history` service also via HTTP.
 
-1. Set up the `istioinaction` namespace for our services:
+* Set up the `istioinaction` namespace for our services:
 
 ```bash
 kubectl create ns istioinaction
 ```
 
-1. Deploy the `web-api`, `recommendation` and `purchase-history` services along with the `sleep` service into the `istioinaction` namespace:
+* Deploy the `web-api`, `recommendation` and `purchase-history` services along with the `sleep` service into the `istioinaction` namespace:
 
 ```bash
 kubectl apply -n istioinaction -f sample-apps/web-api.yaml
@@ -25,7 +25,7 @@ kubectl apply -n istioinaction -f sample-apps/purchase-history-v1.yaml
 kubectl apply -n istioinaction -f sample-apps/sleep.yaml
 ```
 
-1. After running these commands, you should check all of the pods have reached running in the `istioinaction` namespace: 
+* After running these commands, you should check all of the pods have reached running in the `istioinaction` namespace: 
 
 ```bash
 kubectl get po -n istioinaction
@@ -88,7 +88,7 @@ There is a known issue with MetalLB with MacOS. If you are running this lab on y
 
 Even though you don't have our apps in the `istioinaction` namespace in the mesh yet, you can still use the Istio ingress gateway to route traffic to them. Using Istio's `Gateway` resource, you can configure what ports should be exposed, what protocol to use etc. Using Istio's `VirtualService` resource, you can configure how to route traffic from the Istio ingress gateway to our `web-api` service.
 
-1. Review the `Gateway` resource:
+* Review the `Gateway` resource:
 
 ```bash
 cat sample-apps/ingress/web-api-gw.yaml
@@ -113,7 +113,7 @@ spec:
     - "istioinaction.io"
 ```
 
-1. Review the `VirtualService` resource:
+* Review the `VirtualService` resource:
 
 ```bash
 cat sample-apps/ingress/web-api-gw-vs.yaml
@@ -152,7 +152,7 @@ NAME      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
 web-api   ClusterIP   10.1.54.188   <none>        8080/TCP   19d
 ```
 
-1. Apply the `Gateway` and `VirtualService` resource to expose our `web-api` service outside of the Kubernetes cluster:
+* Apply the `Gateway` and `VirtualService` resource to expose our `web-api` service outside of the Kubernetes cluster:
 
 ```bash
 kubectl -n istioinaction apply -f sample-apps/ingress/
@@ -164,7 +164,7 @@ The Istio ingress gateway will create new routes on the proxy that we should be 
 curl -H "Host: istioinaction.io" http://$GATEWAY_IP:$INGRESS_PORT
 ```
 
-1. Query the gateway configuration using the `istioctl proxy-config` command:
+* Query the gateway configuration using the `istioctl proxy-config` command:
 
 ```bash
 istioctl proxy-config routes deploy/istio-ingressgateway.istio-system
@@ -187,13 +187,13 @@ istioctl proxy-config routes deploy/istio-ingressgateway.istio-system --name htt
 
 To secure inbound traffic with HTTPS, you need a certificate with the appropriate SAN and configure the Istio ingress-gateway to use it.
 
-1. Create a TLS secret for `istioinaction.io` in the `istio-system` namespace:
+* Create a TLS secret for `istioinaction.io` in the `istio-system` namespace:
 
 ```bash
 kubectl create -n istio-system secret tls istioinaction-cert --key labs/02/certs/istioinaction.io.key --cert labs/02/certs/istioinaction.io.crt
 ```
 
-1. Update the Istio ingress-gateway to use this cert:
+* Update the Istio ingress-gateway to use this cert:
 
 ```bash
 cat labs/02/web-api-gw-https.yaml
@@ -221,13 +221,13 @@ spec:
 
 Note, we are pointing to the `istioinaction-cert` and **that the cert must be in the same namespace as the ingress gateway deployment**. Even though the `Gateway` resource is in the `istioinaction` namespace, _the cert must be where the gateway is actually deployed_. 
 
-1. Apply the `web-api-gw-https.yaml` in the `istioinaction` namespace. Since this gateway resource is also called `web-api-gateway`, it will replace our prior `web-api-gateway` configuration for port `80`.
+* Apply the `web-api-gw-https.yaml` in the `istioinaction` namespace. Since this gateway resource is also called `web-api-gateway`, it will replace our prior `web-api-gateway` configuration for port `80`.
 
 ```bash
 kubectl -n istioinaction apply -f labs/02/web-api-gw-https.yaml
 ```
 
-1. Call the `web-api` service through the Istio ingress-gateway on the secure `443` port: 
+* Call the `web-api` service through the Istio ingress-gateway on the secure `443` port: 
 
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP

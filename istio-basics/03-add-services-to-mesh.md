@@ -305,19 +305,19 @@ Congratulations on adding all services in the `istioinaction` namespace to the I
 
 You can visualize the services in the mesh in Kiali. 
 
-1. Enable access to Kiali using the command below:
+* Enable access to Kiali using the command below:
 
 ```text
 istioctl dashboard kiali
 ```
 
-1. Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
+* Navigate to [http://localhost:20001](http://localhost:20001) and select the Graph tab.
 
 On the "Namespace" dropdown, select "istioinaction". On the "Display" drop down, select "Traffic Animation" and "Security":
 
 ![Kiali - Enable Options](../.gitbook/assets/kiali-selections.png)
 
-1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+* Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```bash
 for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
@@ -327,7 +327,7 @@ You should observe the service interaction graph with some traffic animation and
 
 ![](../.gitbook/assets/kiali-istioinaction.png)
 
-1. Click on the call graph between `istio-ingressgateway` and `web-api` service. You should see that indeed this call is secured using mTLS along with some HTTP traffic details among the two services:
+* Click on the call graph between `istio-ingressgateway` and `web-api` service. You should see that indeed this call is secured using mTLS along with some HTTP traffic details among the two services:
 
 ![](../.gitbook/assets/kiali-select-a-link.png)
 
@@ -337,23 +337,23 @@ While it is nice to see the communications are secured using mTLS, how do you en
 
 You can view distributed tracing information using the Jaeger dashboard. 
 
-1. Press `ctrl+C` to end the prior `istioctl dashboard kiali` command and use the command below to enable access the Jaeger dashboard:
+* Press `ctrl+C` to end the prior `istioctl dashboard kiali` command and use the command below to enable access the Jaeger dashboard:
 
 ```text
 istioctl dashboard jaeger
 ```
 
-1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
+* Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
 ```bash
 for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
 ```
 
-1. Navigate to [http://localhost:16686](http://localhost:16686). On the "Service" dropdown, select "istio-ingressgateway". Click on the "Find Traces" button at the bottom. You should see 10 traces, which are for every single request to the `web-api` service through the Istio's ingress gateway.
+* Navigate to [http://localhost:16686](http://localhost:16686). On the "Service" dropdown, select "istio-ingressgateway". Click on the "Find Traces" button at the bottom. You should see 10 traces, which are for every single request to the `web-api` service through the Istio's ingress gateway.
 
 ![](../.gitbook/assets/jaeger-traces-ingress-gw.png)
 
-1. Click on one of the traces to view the details of the distributed traces for that request. For example, this request from the picture below has a duration of `6ms` and 6 trace spans among 4 services. Why there are 6 trace spans? You can click on each trace span to learn more information of the trace span. You may notice all trace spans has the same value for the `x-request-id` header. Why? This is how Jaeger knows these trace spans are part of the same request. In order for your services' distributed tracing to work properly in Istio service mesh, the [B-3 trace headers](https://istio.io/latest/docs/tasks/observability/distributed-tracing/overview/#trace-context-propagation) inluding `x-request-id` have to be propogated between your services.
+* Click on one of the traces to view the details of the distributed traces for that request. For example, this request from the picture below has a duration of `6ms` and 6 trace spans among 4 services. Why there are 6 trace spans? You can click on each trace span to learn more information of the trace span. You may notice all trace spans has the same value for the `x-request-id` header. Why? This is how Jaeger knows these trace spans are part of the same request. In order for your services' distributed tracing to work properly in Istio service mesh, the [B-3 trace headers](https://istio.io/latest/docs/tasks/observability/distributed-tracing/overview/#trace-context-propagation) inluding `x-request-id` have to be propogated between your services.
 
 ![](../.gitbook/assets/jaeger-traces-spans-single-req.png)
 
@@ -361,7 +361,7 @@ for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: isti
 
 You can also view various service metrics from the Grafana dashboard. 
 
-1. Press `ctrl+C` to end the prior `istioctl dashboard jaeger` command and use the command below to enable access to the Grafana dashboard:
+* Press `ctrl+C` to end the prior `istioctl dashboard jaeger` command and use the command below to enable access to the Grafana dashboard:
 
 ```text
 istioctl dashboard grafana
