@@ -373,19 +373,19 @@ istioctl dashboard grafana
 
 1. Select the "Istio Control Plane Dashboard" to view the control plane metrics such as version, resource usage, push metrics to the `istio-proxy` containers, etc.
 
-![](../.gitbook/assets/grafana-control-plane-dashboard.png)
+    ![](../.gitbook/assets/grafana-control-plane-dashboard.png)
 
 1. Go back to the Istio dashboard folder, and select the "Istio Service Dashboard" to view the services in the Istio mesh metrics.
 
 1. Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
-```bash
-for i in {1..20}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
-```
+    ```bash
+    for i in {1..20}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP; done
+    ```
 
 1. On the "Service" dropdown, select the "web-api.istioinaction.svc.cluster.local" service. You will notice the Istio service dashboard is updated with client and server request metrics. CLick on the "Refresh dashboard" button if needed. Expand the "Client workloads" and "Server Workloads" section to view details for each workload types.
 
-![](../.gitbook/assets/grafana-service-dashboard.png)
+    ![](../.gitbook/assets/grafana-service-dashboard.png)
 
 ## Next lab
 
