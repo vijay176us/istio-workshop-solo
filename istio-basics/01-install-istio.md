@@ -54,34 +54,42 @@ istioctl install --set profile=demo -y --set values.gateways.istio-ingressgatewa
 Check out the resources installed by Istio: 
 
 ```bash
-kubectl get all,cm,secrets -n istio-system
+kubectl get all,cm,secrets,envoyfilters -n istio-system
 ```
 
-Check out CRDs installed by Istio:
+Check out Custom Resource Definitions \(CRDs\) installed by Istio:
 
 ```bash
-kubectl get crds -n istio-system
+kubectl get crds -n istio-system | grep istio.io
 ```
 
-Check out Istio resources installed by Istio and used by Istio internally:
+Verify the installation using the following command:
 
 ```bash
 istioctl verify-install
 ```
 
+You should see the following at the end of the output to indicate that your Istio is installed successfully:
+
+```
+✔ Istio is installed and verified successfully
+```
+
 ## Install Istio Telemetry Addons
 
-Istio telemetry addons are shipped as samples because these addons are optimized for quick get started and demo purpose and not for production usage. They provides a convenient way to install these telemetry components that integrate with Istio.
+Istio telemetry addons are shipped as samples because these addons are optimized for demo purpose and not for production usage. They provides a convenient way to install these telemetry components that integrate with Istio.
 
 ```bash
 kubectl apply -f samples/addons
 ```
 
-If you hit an error like below, rerun the above command to ensure the `samples/addons` are applied to your Kubernetes cluster. The error below could happen when you attempt to install any `MonitoringDashboard` custom resource before the `MonitoringDashboard` custom resource definition \(CRD\) is installed.
+{% hint style="info" %}
+If you hit an error like below, rerun the above command to ensure the `samples/addons` are applied to your Kubernetes cluster. The error below could happen when you attempt to install any `MonitoringDashboard` custom resource before the `MonitoringDashboard` CRD is installed.
 
 ```text
 unable to recognize "samples/addons/kiali.yaml": no matches for kind "MonitoringDashboard" in version "monitoring.kiali.io/v1alpha1"
 ```
+{% endhint %}
 
 Verify you can access the Prometheus dashboard:
 
@@ -89,27 +97,27 @@ Verify you can access the Prometheus dashboard:
 istioctl dashboard prometheus
 ```
 
-Verify you can access the Grafana dashboard:
+Visit [http://localhost:9090](http://localhost:9090) from your browser, you should be able to view the Prometheus UI. Press `ctrl+C` to end the prior `istioctl dashboard prometheus` command and use the command below to verify you can access the Grafana dashboard: 
 
 ```text
 istioctl dashboard grafana
 ```
 
-Verify you can access the Jaeger dashboard:
+Visit [http://localhost:3000](http://localhost:3000) from your browser, you should be able to view the Grafana UI. Press `ctrl+C` to end the prior `istioctl dashboard grafana` command and use the command below to verify you can access the Jaeger dashboard:
 
 ```text
 istioctl dashboard jaeger
 ```
 
-Verify you can access the Kiali dashboard:
+Visit [http://localhost:16686](http://localhost:16686) from your browser, you should be able to view the Jaeger UI. Press `ctrl+C` to end the prior `istioctl dashboard jaeger` command and use the command below to verify you can access the Kiali dashboard:
 
 ```text
 istioctl dashboard kiali
 ```
 
-You will not see much telemetry data from any of these dashboards, as we don't have any services in the Istio service mesh yet. We will revisit these dashboards in the [lab 03](03-add-services-to-mesh.md).
+Visit [http://localhost:20001/kiali](http://localhost:20001/kiali) from your browser, you should be able to view the Kiali UI. Press `ctrl+C` to end the prior `istioctl dashboard kiali` command.  You will not see much telemetry data from any of these dashboards, as we don't have any services in the Istio service mesh yet. You will revisit these dashboards in the [lab 03](03-add-services-to-mesh.md).
 
 ## Next lab
 
-Congratulations, you have installed Istio control plane \(Istiod\), Istio ingress-gateway and egress-gateway and its addon components successfully. We'll learn to expose and secure your services to Istio ingress gateway in the [next lab](02-secure-service-ingress.md).
+Congratulations, you have installed Istio control plane \(Istiod\), Istio ingress-gateway and egress-gateway and its addon components successfully. We'll learn to expose your services to Istio ingress gateway securely in the [next lab](02-secure-service-ingress.md).
 

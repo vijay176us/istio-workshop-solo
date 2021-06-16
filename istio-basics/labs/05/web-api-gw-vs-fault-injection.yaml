@@ -15,7 +15,7 @@ spec:
     match:
     - headers:
         user:
-          exact: Jason
+          exact: Amy
     route:
     - destination:
         host: web-api.istioinaction.svc.cluster.local
