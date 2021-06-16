@@ -97,19 +97,19 @@ Verify you can access the Prometheus dashboard:
 istioctl dashboard prometheus
 ```
 
-Visit [http://localhost:9090](http://localhost:9090) from your browser, you should be able to view the Prometheus UI. Press `ctrl+C` to end the prior `istioctl dashboard prometheus` command and use the command below to verify you can access the Grafana dashboard: 
+Visit [http://localhost:9090](http://localhost:9090) from your browser, you should be able to view the Prometheus UI. Press `ctrl+C` to end the prior `istioctl dashboard prometheus` command and use the command below to enable access to the Grafana dashboard: 
 
 ```text
 istioctl dashboard grafana
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) from your browser, you should be able to view the Grafana UI. Press `ctrl+C` to end the prior `istioctl dashboard grafana` command and use the command below to verify you can access the Jaeger dashboard:
+Visit [http://localhost:3000](http://localhost:3000) from your browser, you should be able to view the Grafana UI. Press `ctrl+C` to end the prior `istioctl dashboard grafana` command and use the command below to enable access to the Jaeger dashboard:
 
 ```text
 istioctl dashboard jaeger
 ```
 
-Visit [http://localhost:16686](http://localhost:16686) from your browser, you should be able to view the Jaeger UI. Press `ctrl+C` to end the prior `istioctl dashboard jaeger` command and use the command below to verify you can access the Kiali dashboard:
+Visit [http://localhost:16686](http://localhost:16686) from your browser, you should be able to view the Jaeger UI. Press `ctrl+C` to end the prior `istioctl dashboard jaeger` command and use the command below to enable access to the Kiali dashboard:
 
 ```text
 istioctl dashboard kiali

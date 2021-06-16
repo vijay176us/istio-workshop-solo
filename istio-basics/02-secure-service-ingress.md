@@ -1,22 +1,22 @@
 # Lab 2 :: Istio Ingress Gateway
 
-In this lab, you will deploy the sample application to your Kubernetes cluster, and expose the web-api service to the Istio ingress gateway and configure secure access to it. The intention of the ingress gateway is to allow traffic into the mesh. If you need more sophisticated edge gateway capabilities \(rate limiting, request transformation, OIDC, LDAP, OPA, etc\) then use a gateway specifically built for those use cases like [Gloo Edge](https://docs.solo.io/gloo-edge/latest/).
+In this lab, you will deploy the sample application to your Kubernetes cluster, and expose the `web-api` service to the Istio ingress gateway and configure secure access to it. The intention of the ingress gateway is to allow traffic into the mesh. If you need more sophisticated edge gateway capabilities \(request transformation, OIDC, LDAP, OPA, etc\) then use a gateway specifically built for those use cases like [Gloo Edge](https://docs.solo.io/gloo-edge/latest/).
 
 ## Prerequisites
 
-Verify you're in the correct folder for this lab: `/home/solo/workshops/istio-basics`. This lab builds on lab 01 where we already installed Istio using the demo profile.
+Verify you're in the correct folder for this lab: `/home/solo/workshops/istio-basics`. This lab builds on the [lab 01](01-install-istio.md) where you installed Istio and its addon components using the demo profile.
 
 ## Deploy the sample application
 
-TODO: explain the sample application with a diagram.
+You will use the `web-api`, `recommendation` and `purchase-history` services built using the [fake service](https://github.com/nicholasjackson/fake-service) as our sample application. The `web-api` service calls the `recommendation` service via HTTP and the `recommendation` service calls the `purchase-history` service also via HTTP.
 
-Let's set up the namespace for our services:
+1. Set up the `istioinaction` namespace for our services:
 
 ```bash
 kubectl create ns istioinaction
 ```
 
-Now let's create some services:
+2. Deploy the `web-api`, `recommendation` and `purchase-history` services along with the `sleep` service into the `istioinaction` namespace:
 
 ```bash
 kubectl apply -n istioinaction -f sample-apps/web-api.yaml
