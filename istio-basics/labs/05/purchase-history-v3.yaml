@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: purchase-history-v3
+  labels:
+    app: purchase-history
+    version: v3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app: purchase-history
+        version: v3
+  template:
+    metadata:
+      labels:
+        app: purchase-history
+        version: v3
+    spec:
+      serviceAccountName: purchase-history    
+      containers:
+      - name: purchase-history
+        image: linsun/fake-service:v2
+        ports:
+        - containerPort: 8080
+        env:
+        - name: "LISTEN_ADDR"
+          value: "0.0.0.0:8080"
+        - name: "NAME"
+          value: "purchase-history-v3"
+        - name: "SERVER_TYPE"
+          value: "http"
+        - name: "MESSAGE"
+          value: "Hello From Purchase History (v3)!"
+        - name: "EXTERNAL_SERVICE_URL"
+          value: "https://jsonplaceholder.typicode.com/posts"
+        - name: "ERROR_CODE"
+          value: "503"
+        - name: "ERROR_RATE"
+          value: "0.5"
+        - name: "ERROR_TYPE"
+          value: "delay"
+        - name: "ERROR_DELAY"
+          value: "4s"
+        imagePullPolicy: Always
