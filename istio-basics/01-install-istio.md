@@ -51,7 +51,7 @@ istioctl install --set profile=demo -y --set values.gateways.istio-ingressgatewa
 ```
 {% endhint %}
 
-* Check out the resources installed by Istio: 
+* You should see an output that indicate each Istio component is installed successfully. Check out the resources installed by Istio: 
 
 ```bash
 kubectl get all,cm,secrets,envoyfilters -n istio-system
@@ -91,13 +91,13 @@ unable to recognize "samples/addons/kiali.yaml": no matches for kind "Monitoring
 ```
 {% endhint %}
 
-Check if all pods in the `istio-system` have reached running:
+Wait till all pods in the `istio-system` have reached running:
 
 ```bash
 kubectl get pods -n istio-system
 ```
 
-Verify you can access the Prometheus dashboard:
+Enable the access to the Prometheus dashboard:
 
 ```text
 istioctl dashboard prometheus
