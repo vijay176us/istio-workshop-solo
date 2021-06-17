@@ -10,11 +10,11 @@ This lab explains how to get started with Istio and explore various functions Is
 
 ## Lab environment and prep
 
-We will use a Kubernetes cluster offered by instruqt to run the lab.
+We will use a Kubernetes cluster offered by instruqt to run the lab. You can also use a Kubernetes cluster provided by your cloud provider or follow the instruction below to setup a Kubernetes cluster on your laptop.
 
 ### Lab environment prep on your local laptop
 
-Alternatively, you can also run this lab on your laptop where Docker is supported. Due to a known issue with MetalLB with MacOS. If you are running this lab on MacOS, we recommend you to run a vagrant Ubuntu VM on your MacOS.
+Alternatively, you can also run this lab on your laptop where Docker is supported. Due to a known issue with MetalLB with MacOS. If you are running this lab on MacOS, we recommend you to run a [vagrant Ubuntu VM](https://github.com/solo-io/workshops/blob/master/VAGRANT.md) on your MacOS.
 
 ### Set up Kubernetes cluster with Kind
 
@@ -63,7 +63,7 @@ kube-system   coredns-854c77959c-d69qd                  1/1     Running   0     
 Now go to the directory that has the workshop material:
 
 ```text
-cd /home/solo/workshops/istio-basics/
+cd /home/solo/istio-workshops/istio-basics/
 ```
 
 * [Lab 1 - Install Istio](01-install-istio.md)
