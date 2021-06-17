@@ -12,6 +12,8 @@ This workshop is intended for developers and operators. Anyone responsible for t
 
 This workshop also includes a certification option. This credential, offered by Solo.io with Credly, certifies that you possess the introductory skills, to install, secure services, add services to the Mesh, secure interservices communication, and control traffic. At the completion of the workshop, you will be able to take an assessment and a score 80% or higher earns the certification.
 
+![](../.gitbook/assets/Solo_Workshop_Basics_Badge.png)
+
 ## Lab environment and prep
 
 We will use a Kubernetes cluster offered by instruqt to run the lab. You can also use a Kubernetes cluster provided by your cloud provider or follow the instruction below to setup a Kubernetes cluster on your laptop.
