@@ -19,6 +19,11 @@ export PATH=$PWD/bin:$PATH
 
 * Check istioctl version:
 
+<!--bash
+pushd /usr/local/bin
+  ln -s $(which istioctl)
+popd
+-->
 ```bash
 istioctl version
 ```
@@ -53,6 +58,9 @@ istioctl install --set profile=demo -y --set values.gateways.istio-ingressgatewa
 
 * You should see an output that indicate each Istio component is installed successfully. Check out the resources installed by Istio: 
 
+<!--bash
+kubectl wait --for=condition=Ready pod --all -n istio-system
+-->
 ```bash
 kubectl get all,cm,secrets,envoyfilters -n istio-system
 ```
@@ -93,6 +101,9 @@ unable to recognize "samples/addons/kiali.yaml": no matches for kind "Monitoring
 
 Wait till all pods in the `istio-system` have reached running:
 
+<!--bash
+kubectl wait --for=condition=Ready pod --all -n istio-system
+-->
 ```bash
 kubectl get pods -n istio-system
 ```
