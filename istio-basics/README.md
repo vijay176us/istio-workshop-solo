@@ -1,6 +1,5 @@
 # Get Started With Istio Service Mesh
 
-Download Labs [istio-basics.zip](./istio-basics.zip)
 
 Microservices can be complicated and difficult to manage. These complexities have given rise to a new solution called service mesh. Istio is the most dominant service mesh in production today per a CNCF survey in late 2020. This workshop explains how to get started with Istio by incrementally adopting Istio and observing the benefits that Istio service mesh brings to you. We will explore various functions and benefits that Istio provides to your organization. We cover the following topics in this workshop:
 
@@ -67,6 +66,10 @@ kube-system   coredns-854c77959c-d69qd                  1/1     Running   0     
 ```
 
 ## Start the lab!
+
+Download Labs 
+
+{% file src="../.gitbook/assets/istio-basics.zip" caption="istio-basics.zip" %}
 
 Now go to the directory that has the workshop material:
 
