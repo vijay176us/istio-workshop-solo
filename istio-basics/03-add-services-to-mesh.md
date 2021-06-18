@@ -297,6 +297,10 @@ kubectl rollout restart deployment sleep -n istioinaction
 
 Validate the all the pods in the `istioinaction` namespace has reached running status with Istio's default sidecar proxy injected:
 
+<!--bash
+sleep 4
+kubectl wait --for=condition=Ready pod -n istioinaction --all
+-->
 ```bash
 kubectl get pods -n istioinaction
 ```
