@@ -365,7 +365,7 @@ for i in {1..10}; do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: isti
 
 * Click on one of the traces to view the details of the distributed traces for that request. For example, this request from the picture below has a duration of `6ms` and 6 trace spans among 4 services. Why there are 6 trace spans? You can click on each trace span to learn more information of the trace span. You may notice all trace spans has the same value for the `x-request-id` header. Why? This is how Jaeger knows these trace spans are part of the same request. In order for your services' distributed tracing to work properly in Istio service mesh, the [B-3 trace headers](https://istio.io/latest/docs/tasks/observability/distributed-tracing/overview/#trace-context-propagation) inluding `x-request-id` have to be propogated between your services.
 
-![](../.gitbook/assets/jaeger-traces-spans-single-req.png)
+![](../.gitbook/assets/jaeger-trace-spans-single-req.png)
 
 ### Istio control plane and data plane Grafana dashboards
 
