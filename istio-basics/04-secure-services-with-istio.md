@@ -2,6 +2,13 @@
 
 In the previous lab, you explored adding services into a mesh. When you installed Istio using the demo profile, it has permissive security mode. Istio permissive security setting is useful when you have services that are being moved into the service mesh incrementally by allowing both plain text and mTLS traffic. In this lab, you will explore how Istio manages secure communication between services and how to enable strict security communication between services in the sample application.
 
+## Prerequisites
+
+Verify you're in the correct folder for this lab: `~/istio-workshops/istio-basics`. This lab builds on the [lab 03](03-add-services-to-mesh.md) where you added your services to the mesh.
+
+```bash
+cd ~/istio-workshops/istio-basics
+```
 ## Permissive mode
 
 By default, Istio automatically upgrades the connection securely from the source service's sidecar proxy to the target service's sidecar proxy. This is why you saw the paddlelock icon in the Kiali graph earlier from Istio ingress gateway to the `web-api` service to the `history` service then to the `recommendation` service. While this is good when onboarding your services to Istio service mesh as the communication between source and target services continues to be allowed via plain text if mutual TLS communication fails, you don't want this in production environment without proper security policy in place.

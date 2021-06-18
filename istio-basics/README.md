@@ -67,15 +67,17 @@ kube-system   coredns-854c77959c-d69qd                  1/1     Running   0     
 
 ## Start the lab!
 
-Download Labs 
+Download Lab yaml files:
 
 {% file src="../.gitbook/assets/istio-basics.zip" caption="istio-basics.zip" %}
 
-Now go to the directory that has the workshop material:
+Unzip the content into `~/istio-workshops/` then go to the directory that has the workshop material:
 
 ```text
-cd /home/solo/istio-workshops/istio-basics/
+cd ~/istio-workshops/istio-basics/
 ```
+
+You will run each of the labs from the `~/istio-workshops/istio-basics/` directory:
 
 * [Lab 1 - Install Istio](01-install-istio.md)
 * [Lab 2 - Secure services with Istio Ingress Gateway](02-secure-service-ingress.md)

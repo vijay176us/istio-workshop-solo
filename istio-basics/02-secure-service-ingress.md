@@ -4,7 +4,11 @@ In this lab, you will deploy the sample application to your Kubernetes cluster, 
 
 ## Prerequisites
 
-Verify you're in the correct folder for this lab: `/home/solo/istio-workshops/istio-basics`. This lab builds on the [lab 01](01-install-istio.md) where you installed Istio and its addon components using the demo profile.
+Verify you're in the correct folder for this lab: `~/istio-workshops/istio-basics`. This lab builds on the [lab 01](01-install-istio.md) where you installed Istio and its addon components using the demo profile.
+
+```bash
+cd ~/istio-workshops/istio-basics
+```
 
 ## Deploy the sample application
 
