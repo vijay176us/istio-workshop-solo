@@ -55,6 +55,9 @@ kubectl apply -n default -f sample-apps/sleep.yaml
 
 * Access the `web-api` service from the `sleep` pod in the `default` namespace: 
 
+<!--bash
+kubectl wait --for=condition=Ready pod -n default --all
+-->
 ```bash
 kubectl exec deploy/sleep -n default -- curl http://web-api.istioinaction:8080/
 ```
@@ -89,6 +92,14 @@ On the "Namespace" dropdown, select "istioinaction". On the "Display" drop down,
 
 * Generate some load to the data plane \(by calling our `web-api` service\) so that you can observe interactions among your services:
 
+<!--bash
+GATEWAY_IP=$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+SECURE_INGRESS_PORT=443
+for i in {1..200}; 
+  do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT  --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP;
+  echo "$i/200"
+done
+-->
 ```text
 for i in {1..200}; 
   do curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT  --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP;

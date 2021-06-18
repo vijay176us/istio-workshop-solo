@@ -27,6 +27,9 @@ kubectl apply -n istioinaction -f sample-apps/sleep.yaml
 
 * After running these commands, you should check all of the pods have reached running in the `istioinaction` namespace: 
 
+<!--bash
+kubectl wait --for=condition=Ready pod --all -n istioinaction
+-->
 ```bash
 kubectl get po -n istioinaction
 ```
@@ -160,6 +163,9 @@ kubectl -n istioinaction apply -f sample-apps/ingress/
 
 The Istio ingress gateway will create new routes on the proxy that we should be able to call it from outside of the Kubernetes cluster:
 
+<!--bash
+sleep 2
+-->
 ```bash
 curl -H "Host: istioinaction.io" http://$GATEWAY_IP:$INGRESS_PORT
 ```
@@ -229,6 +235,9 @@ kubectl -n istioinaction apply -f labs/02/web-api-gw-https.yaml
 
 * Call the `web-api` service through the Istio ingress-gateway on the secure `443` port: 
 
+<!--bash
+sleep 2
+-->
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```

@@ -123,6 +123,9 @@ kubectl apply -f labs/05/purchase-history-v2.yaml -n istioinaction
 
 Confirm the new `v2` `purchase-history` pod has reached running: 
 
+<!--bash
+kubectl wait --for=condition=Ready pod -l app=purchase-history -n istioinaction
+-->
 ```bash
 kubectl get pods -n istioinaction -l app=purchase-history
 ```
@@ -153,6 +156,10 @@ Unable to connect to the external service:  Get "https://jsonplaceholder.typicod
 
 This is not good, the `purchase-history-v2` pod *cannot* reach the JasonPlaceHolder external service at startup time. Generate some load on the `web-api` service to ensure your users are not impacted by the newly added v2 of the `purchase-history` service:
 
+<!--bash
+GATEWAY_IP=$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+SECURE_INGRESS_PORT=443
+-->
 ```bash
 for i in {1..10}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
@@ -200,6 +207,9 @@ You will see we are able to connect to the external service in the log:
 
 Test the v2 of the `purchase-history` service from its own sidecar proxy: 
 
+<!--bash
+sleep 2
+-->
 ```bash
 kubectl exec deploy/purchase-history-v2 -n istioinaction -c istio-proxy -- curl -s localhost:8080
 ```
@@ -326,6 +336,9 @@ kubectl apply -f labs/05/purchase-history-vs-20-v2.yaml -n istioinaction
 
 Generate some load on the `web-api` service to check how many requests are served by `v1` and `v2` of the `purchase-history` service. You should see only a few from `v2` while the rest from `v1`. You may be curious why you are not observe the exactly 80%/20% distribution among `v1` and `v2`. You likely need to have over 100 requests to get the desired 80%/20% weighted version distribution.
 
+<!--bash
+sleep 2
+-->
 ```bash
 for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
@@ -372,6 +385,9 @@ kubectl apply -f labs/05/purchase-history-vs-50-v2.yaml -n istioinaction
 
 Generate some load on the `web-api` service to check how many requests are served by `v1` and `v2` of the `purchase-history` service. You should observe _roughly_ 50%/50% distribution among the `v1` and `v2` of the service.
 
+<!--bash
+sleep 2
+-->
 ```bash
 for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
@@ -388,6 +404,9 @@ kubectl apply -f labs/05/purchase-history-vs-all-v2.yaml -n istioinaction
 
 Generate some load on the `web-api` service, you should only see traffic to the `v2` of the `purchase-history` service.
 
+<!--bash
+sleep 2
+-->
 ```bash
 for i in {1..20}; do curl -s --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP|grep "Hello From Purchase History"; done
 ```
@@ -468,6 +487,9 @@ kubectl apply -f labs/05/purchase-history-v3.yaml -n istioinaction
 
 Generate some load with the `user: Jason` header to ensure traffic goes 100% to `v3` of the `purchase-history` service. You will quickly see errors from the v3 of the `purchase-history` service:
 
+<!--bash
+kubectl wait --for=condition=Ready pod -l app=purchase-history -n istioinaction
+-->
 ```bash
 for i in {1..6}; do kubectl exec deploy/sleep -n istioinaction -- curl -s -H "user: Jason" http://purchase-history:8080/; done
 ```
@@ -481,6 +503,9 @@ kubectl apply -f labs/05/purchase-history-vs-all-v2-header-v3.yaml -n istioinact
 
 Generate some load you should *NOT* see any errors from the `v3` of the `purchase-history` service:
 
+<!--bash
+sleep 2
+-->
 ```bash
 for i in {1..6}; do kubectl exec deploy/sleep -n istioinaction -- curl -s -H "user: Jason" http://purchase-history:8080/; done
 ```
@@ -531,6 +556,9 @@ kubectl apply -f labs/05/purchase-history-vs-all-v2-v3-retries-timeout.yaml -n i
 
 Send some traffic to the `purchase-history` service from the `sleep` pod:
 
+<!--bash
+sleep 2
+-->
 ```bash
 for i in {1..6}; do kubectl exec deploy/sleep -n istioinaction -- curl -s -H "user: Jason" http://purchase-history:8080/|grep timeout; done
 ```
@@ -636,6 +664,9 @@ kubectl apply -f labs/05/web-api-gw-vs-fault-injection.yaml -n istioinaction
 
 Send some traffic to the `web-api` service, you should see `200` response code right away:
 
+<!--bash
+sleep 2
+-->
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```
@@ -776,6 +807,9 @@ kubectl apply -f labs/05/typicode-se.yaml -n istioinaction
 
 * Send some traffic to the `web-api` service. You should get the `200` response now.
 
+<!--bash
+sleep 2
+-->
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```

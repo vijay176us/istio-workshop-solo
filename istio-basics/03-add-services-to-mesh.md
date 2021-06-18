@@ -88,6 +88,12 @@ kubectl rollout restart deployment web-api -n istioinaction
 
 Validate the `web-api` pod has reached running status with Istio's default sidecar proxy injected: 
 
+<!--bash
+sleep 4
+kubectl wait --for=condition=Ready pod -l app=web-api -n istioinaction
+GATEWAY_IP=$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+SECURE_INGRESS_PORT=443
+-->
 ```bash
 kubectl get pod -l app=web-api -n istioinaction
 ```
@@ -107,6 +113,10 @@ kubectl logs deploy/web-api -c web-api -n istioinaction
 
 Validate you can continue to call the `web-api` service securely:
 
+<!--bash
+sleep 4
+kubectl wait --for=condition=Ready pod -n istioinaction --all
+-->
 ```bash
 curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
 ```
