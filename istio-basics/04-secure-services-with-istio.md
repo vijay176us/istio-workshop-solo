@@ -9,6 +9,7 @@ Verify you're in the correct folder for this lab: `~/istio-workshops/istio-basic
 ```bash
 cd ~/istio-workshops/istio-basics
 ```
+
 ## Permissive mode
 
 By default, Istio automatically upgrades the connection securely from the source service's sidecar proxy to the target service's sidecar proxy. This is why you saw the paddlelock icon in the Kiali graph earlier from Istio ingress gateway to the `web-api` service to the `history` service then to the `recommendation` service. While this is good when onboarding your services to Istio service mesh as the communication between source and target services continues to be allowed via plain text if mutual TLS communication fails, you don't want this in production environment without proper security policy in place.

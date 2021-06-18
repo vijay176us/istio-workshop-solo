@@ -4,11 +4,12 @@ In this lab, you will incrementally add services to the mesh. As part of adding 
 
 ## Prerequisites
 
-Verify you're in the correct folder for this lab: `~/istio-workshops/istio-basics`. This lab builds on the [lab 02](01-install-istio.md) where you exposed the `web-api` service to the Istio ingress-gateway securely.
+Verify you're in the correct folder for this lab: `~/istio-workshops/istio-basics`. This lab builds on the [lab 02](02-secure-service-ingress.md) where you exposed the `web-api` service to the Istio ingress-gateway securely.
 
 ```bash
 cd ~/istio-workshops/istio-basics
 ```
+
 ## Sidecar injection
 
 Adding services to the mesh requires that the client-side proxies be associated with the service components and registered with the control plane. With Istio, you have two methods to inject the Envoy proxy sidecar into the microservice Kubernetes pods:
