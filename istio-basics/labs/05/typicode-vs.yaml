@@ -5,7 +5,7 @@ metadata:
 spec:
   hosts:
     - "jsonplaceholder.typicode.com"
-  https:
+  http:
   - timeout: 3s
     route:
       - destination:
