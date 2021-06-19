@@ -1,6 +1,6 @@
 # Lab 1 :: Install Istio
 
-One of the quickest way to get started with Istio is to leverage the demo profile. The demo profile is designed to showcase Istio functionality with modest resource requirements. The demo profile contains Istio control plane \(also called Istiod\), Istio ingress-gateway and egress-gateway, and a few addon components. In this lab, you will install Istio with the demo profile. You will validate the installation is successfully and examinate the installation artifacts.
+One of the quickest way to get started with Istio is to leverage the demo profile. The demo profile is designed to showcase Istio functionality with modest resource requirements. The demo profile contains Istio control plane \(also called Istiod\), Istio ingress-gateway and egress-gateway, and a few addon components. In this lab, you will install Istio with the demo profile. You will validate the installation is successfully and examinate the installation artifacts. You can use either istioctl, Helm or Istio operator to install Istio, in this lab you will use istioctl to install Istio.
 
 ## Download Istio
 
