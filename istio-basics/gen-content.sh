@@ -2,4 +2,4 @@
 
 # generates the assets for users to download and use
 
-zip -r istio-basics.zip labs/ sample-apps/
+zip -r ../.gitbook/assets/istio-basics.zip labs/ sample-apps/
