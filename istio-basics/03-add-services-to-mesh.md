@@ -66,7 +66,7 @@ From the service descriptor, the `name: http` declares the `http` protocol for t
     targetPort: 8081
 ```
 
-From the deployment descriptor, the `app: web-api` label matches the `web-api` service's selector of `app: web-api` so this deployment and its pod are associated with the `web-api` service. Further, the `app: web-api` label and `version: v1` labels provide contextual information for metrics and tracing. The `containerPort: 8080` declares the listening port for the container, which matches the `targetPort: 8081` in the `web-api` service descriptor earlier.
+From the deployment descriptor, the `app: web-api` label matches the `web-api` service's selector of `app: web-api` so this deployment and its pod are associated with the `web-api` service. Further, the `app: web-api` label and `version: v1` labels provide contextual information for metrics and tracing. The `containerPort: 8081` declares the listening port for the container, which matches the `targetPort: 8081` in the `web-api` service descriptor earlier.
 
 ```yaml
   template:
