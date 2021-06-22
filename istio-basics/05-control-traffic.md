@@ -689,7 +689,7 @@ Note that there is no change to the `web-api` service to inject the delay. Istio
 
 ## Controlling Outbound Traffic
 
-When you use Kubernetes, any application pod can make calls to services that are outside the Kubernetes clueter unless there is a Kubernetes network policy that prevents calling the target service. However, network policies are restricted to layer 4 rules which means that they can only allow or restrict access to specific IP addresses. What if you want more control over how applications within the mesh can reach external services using layer 7 policies and more fine-grained attribute policy evaluation?
+When you use Kubernetes, any application pod can make calls to services that are outside the Kubernetes cluster unless there is a Kubernetes network policy that prevents calling the target service. However, network policies are restricted to layer 4 rules which means that they can only allow or restrict access to specific IP addresses. What if you want more control over how applications within the mesh can reach external services using layer 7 policies and more fine-grained attribute policy evaluation?
 
 By default, Istio allows all outbound traffic to ensure users have a smooth starting experience. If you choose to restrict all outbound traffic across the mesh, you can update your Istio install to enable restricted outbound traffic access so that only registered external services are allowed. This is highly recommended.
 
@@ -761,7 +761,7 @@ You should see the request to `purchase-history` to fail because all outbound tr
 Check the pod logs of the `purchase-history-v2` pod:
 
 ```bash
-kubectl logs deploy/purchase-history-v2 -n istioinaction
+kubectl logs deploy/purchase-history-v2 -n istioinaction | grep "x-envoy-attempt-count: 3" -A 10
 ```
 
 You can see envoy attempted 3 times including the 2 retries by default and the service can't connect to the external service \(`jsonplaceholder.typicode.com` here\) successfully.
