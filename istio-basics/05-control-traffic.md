@@ -647,7 +647,8 @@ spec:
   - fault:
       delay:
         fixedDelay: 15s
-        percent: 100
+        percentage:
+          value: 100
     match:
     - headers:
         user:
