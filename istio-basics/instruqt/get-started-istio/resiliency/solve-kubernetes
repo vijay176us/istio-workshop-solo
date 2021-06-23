@@ -1,0 +1,23 @@
+cat labs/05/purchase-history-vs-all-v2-v3-retries.yaml
+kubectl apply -f labs/05/purchase-history-vs-all-v2-v3-retries.yaml -n istioinaction
+kubectl apply -f labs/05/purchase-history-dr-v3.yaml -n istioinaction
+cat labs/05/purchase-history-v3.yaml
+kubectl apply -f labs/05/purchase-history-v3.yaml -n istioinaction
+kubectl wait --for=condition=Ready pod -l app=purchase-history -n istioinaction
+for i in {1..6}; do kubectl exec deploy/sleep -n istioinaction -- curl -s -H "user: Jason" http://purchase-history:8080/; done
+cat labs/05/purchase-history-vs-all-v2-header-v3.yaml
+kubectl apply -f labs/05/purchase-history-vs-all-v2-header-v3.yaml -n istioinaction
+sleep 2
+for i in {1..6}; do kubectl exec deploy/sleep -n istioinaction -- curl -s -H "user: Jason" http://purchase-history:8080/; done
+kubectl logs deploy/purchase-history-v3 -n istioinaction | grep x-envoy-attempt-count
+cat labs/05/purchase-history-vs-all-v2-v3-retries-timeout.yaml
+kubectl apply -f labs/05/purchase-history-vs-all-v2-v3-retries-timeout.yaml -n istioinaction
+sleep 2
+for i in {1..6}; do kubectl exec deploy/sleep -n istioinaction -- curl -s -H "user: Jason" http://purchase-history:8080/|grep timeout; done
+cat labs/05/web-api-dr-with-cb.yaml
+kubectl apply -f labs/05/web-api-dr-with-cb.yaml -n istioinaction
+cat labs/05/web-api-gw-vs-fault-injection.yaml
+kubectl apply -f labs/05/web-api-gw-vs-fault-injection.yaml -n istioinaction
+sleep 2
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
+curl --cacert ./labs/02/certs/ca/root-ca.crt -H "Host: istioinaction.io" -H "user: Amy" https://istioinaction.io:$SECURE_INGRESS_PORT --resolve istioinaction.io:$SECURE_INGRESS_PORT:$GATEWAY_IP
