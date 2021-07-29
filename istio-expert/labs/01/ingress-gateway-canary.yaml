@@ -1,0 +1,13 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-ingressgateway-canary
+spec:
+  profile: empty
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway-canary
+      namespace: istio-ingress
+      enabled: true
+      label: 
+        istio: istio-ingressgateway-canary
