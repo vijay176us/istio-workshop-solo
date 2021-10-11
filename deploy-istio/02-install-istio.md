@@ -164,7 +164,7 @@ We will cover more of the `debug` endpoints in [Lab 08](./08-debugging-config.md
 
 In this section, we'll install a sidecar onto the `httpbin` service from the previous lab and explore it. We will manually inject the sidecar so that in the bonus section we can fiddle with the security permissions because by default the Istio sidecar has privileges disabled.
 
-Run the following command to add the Istio sidecar to the `httpbin` service in the `default` namespasce:
+Run the following command to add the Istio sidecar to the `httpbin` service in the `default` namespace:
 
 ```bash
 istioctl kube-inject -f labs/01/httpbin.yaml --meshConfigMapName istio-1-8-3 --injectConfigMapName istio-sidecar-injector-1-8-3  | kubectl apply -f -
