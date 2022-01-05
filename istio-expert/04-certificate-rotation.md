@@ -1,4 +1,4 @@
-# Lab 2 :: Certificate rotation and PKI integration
+# Lab 4 :: Certificate rotation and PKI integration
 
 One important capability that Istio provides is workload identity. With workload identity, we can encode an identity into a verifiable document and enforce authentication and authorization policies around this identity. Istio uses x509 certificates and SPIFFE to implement identity and uses this mechanism to accomplish two important security practices: implement authentication and encrypt the transport (TLS/mTLS). With these foundational pieces in place, we can strongly secure all traffic between services.
 
