@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ratings-delegated-vs
+  namespace: ratings-ns
+spec:
+  http:
+  - route:
+    - destination:
+        host: ratings.ratings-ns.svc.cluster.local

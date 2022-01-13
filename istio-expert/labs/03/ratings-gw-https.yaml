@@ -12,7 +12,7 @@ spec:
       name: https
       protocol: HTTPS
     hosts:
-    - "ratings/ratings.istioinaction.io"    
+    - "ratings-ns/ratings.istioinaction.io"    
     tls:
       mode: SIMPLE
       credentialName: ratings-cert

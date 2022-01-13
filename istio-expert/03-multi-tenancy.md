@@ -29,58 +29,60 @@ The lab below assumes you have Istio 1.12.0 installed with revision 1-12-0 with 
 
 Let us clean up some deployments from the prior lab as we need to re-organize them as teams:
 
-```
+```bash
 kubectl delete deployment web-api purchase-history-v1 recommendation sleep -n istioinaction
 kubectl delete service web-api purchase-history recommendation sleep -n istioinaction
 ```
 
 Create the namespaces for team A/B/C:
 
-```
+```bash
 # team A:
-kubectl create namespace web-api
-kubectl label namespace web-api istio.io/rev=1-12-0
+kubectl create namespace web-api-ns
+kubectl label namespace web-api-ns istio.io/rev=1-12-0
 
 # team B:
-kubectl create namespace recommendation
-kubectl create namespace purchase-history
-kubectl label namespace recommendation istio.io/rev=1-12-0
-kubectl label namespace purchase-history istio.io/rev=1-12-0
+kubectl create namespace recommendation-ns
+kubectl create namespace purchase-history-ns
+kubectl label namespace recommendation-ns istio.io/rev=1-12-0
+kubectl label namespace purchase-history-ns istio.io/rev=1-12-0
 
 # team C:
-kubectl create namespace ratings
-kubectl label namespace ratings istio.io/rev=1-12-0
+kubectl create namespace ratings-ns
+kubectl label namespace ratings-ns istio.io/rev=1-12-0
 
 ```
 
-For team A (assuming team A has access to the `web-api` namespace), deploy the `web-api` service in the `web-api` namespace:
+For team A (assuming team A has access to the `web-api-ns` namespace), deploy the `web-api` service in the `web-api` namespace:
 
-```
-kubectl apply -f labs/03/web-api.yaml -n web-api
-```
-
-For team B (assuming team B has access to the `recommendation` and `purchase-history` namespaces), deploy the `recommendation` service in the `recommendation` namespace, and the `purchase-history` service in the `purchase-history` namespace`:
-
-```
-kubectl apply -f labs/03/recommendation.yaml -n recommendation
-kubectl apply -f labs/03/purchase-history-v1.yaml -n purchase-history
+```bash
+kubectl apply -f labs/03/web-api.yaml -n web-api-ns
 ```
 
-For team C (assuming team B has access to the `ratings` namespace), deploy `ratings` service in the `ratings` namespace:
+For team B (assuming team B has access to the `recommendation-ns` and `purchase-history-ns` namespaces), deploy the `recommendation` service in the `recommendation-ns` namespace, and the `purchase-history` service in the `purchase-history-ns` namespace`:
 
+```bash
+kubectl apply -f labs/03/recommendation.yaml -n recommendation-ns
+kubectl apply -f labs/03/purchase-history-v1.yaml -n purchase-history-ns
 ```
-kubectl apply -f labs/03/ratings.yaml -n ratings
+
+For team C (assuming team B has access to the `ratings-ns` namespace), deploy `ratings` service in the `ratings-ns` namespace:
+
+```bash
+kubectl apply -f labs/03/ratings.yaml -n ratings-ns
 ```
 ## Gateway and Virtual Service Isolation
 
+### Gateway resources
 The gateway team defines a Gateway resource for each team (A, B and C). Let us display and dive into these gateway resources.
-```
+
+```bash
 cat labs/03/web-api-gw-https.yaml
 ```
 
-The `web-api-gateway` resource is for team A. For the `hosts` field where it defines that when traffic arrives for `web-api.istioinaction.io`, the routing behavior must be defined in the `web-api` namespace which is owned by team A.  
+The `web-api-gateway` resource is for team A. For the `hosts` field where it defines that when traffic arrives for `web-api.istioinaction.io`, the routing behavior must be defined in the `web-api-ns` namespace which is owned by team A.  
 
-```
+```text
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
@@ -95,26 +97,33 @@ spec:
       name: https
       protocol: HTTPS
     hosts:
-    - "web-api/web-api.istioinaction.io"
+    - "web-api-ns/web-api.istioinaction.io"
     tls:
       mode: SIMPLE
       credentialName: web-api-cert
 ```
 
-Review the gateway resources for team B and C, you'll notice the similar host configuration along with a unique credential for the hostname:
+Review the gateway resources for team B and C, you'll notice the similar host configuration along with unique credential for the hostname:
 
-```
+```bash
 cat labs/03/recommendation-gw-https.yaml
 cat labs/03/ratings-gw-https.yaml
 ```
-### VS merging
 
+Acting as the gateway team, apply these gateway resources to the `istio-ingress` namespace. 
 
-Alternatively, the gateway team can define 1 gateway resource with all the configuration inside it.
+```bash
+kubectl apply -f labs/03/web-api-gw-https.yaml
+kubectl apply -f labs/03/recommendation-gw-https.yaml
+kubectl apply -f labs/03/ratings-gw-https.yaml
+```
+
+### VirtualService and Gateway resources owned by different team
+
+Team A and B owns the virtual service resources while team C owns only the delegated virtual service resource.
 
 ### VirtualService delegation
-
-
+Team C prefers to learn as little Istio resources as possible. The gateway team decides to use Virtual Service delegation feature in Istio to handle this sceanrio where the gateway team can delegate the routing behavior to be defined from another VirtualService, which is often called delegated VirtualService.
 ### Listener ports for the gateway resource
 
 Note: mention exposing ports on gateway as needed

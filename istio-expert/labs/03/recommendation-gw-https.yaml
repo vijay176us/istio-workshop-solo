@@ -12,7 +12,7 @@ spec:
       name: https
       protocol: HTTPS
     hosts:
-    - "recommendation/recommendation.istioinaction.io"    
+    - "recommendation-ns/recommendation.istioinaction.io"    
     tls:
       mode: SIMPLE
       credentialName: recommendation-cert
