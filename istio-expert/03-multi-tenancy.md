@@ -80,7 +80,7 @@ The gateway team defines a Gateway resource for each team (A, B and C). Let us d
 cat labs/03/web-api-gw-https.yaml
 ```
 
-The `web-api-gateway` resource is for team A. For the `hosts` field where it defines that when traffic arrives for `web-api.istioinaction.io`, the routing behavior must be defined in the `web-api-ns` namespace which is owned by team A.  
+You'll get the followng output:
 
 ```text
 apiVersion: networking.istio.io/v1beta1
@@ -103,6 +103,8 @@ spec:
       credentialName: web-api-cert
 ```
 
+The `web-api-gateway` resource is for team A. For the `hosts` field where it defines that when traffic arrives for `web-api.istioinaction.io`, the routing behavior must be defined in the `web-api-ns` namespace which is owned by team A.  
+
 Review the gateway resources for team B and C, you'll notice the similar host configuration along with unique credential for the hostname:
 
 ```bash
@@ -118,11 +120,77 @@ kubectl apply -f labs/03/recommendation-gw-https.yaml
 kubectl apply -f labs/03/ratings-gw-https.yaml
 ```
 
-### VirtualService and Gateway resources owned by different team
+What else is missing? Run `istioctl analyze` command to get some hints:
+
+```bash
+istioctl analyze -n istio-ingress
+```
+
+From the output, you can see we need to create the credentials for each gateway resource:
+
+```text
+Error [IST0101] (Gateway istio-ingress/ratings-gateway) Referenced credentialName not found: "ratings-cert"
+Error [IST0101] (Gateway istio-ingress/recommendation-gateway) Referenced credentialName not found: "recommendation-cert"
+Error [IST0101] (Gateway istio-ingress/web-api-gateway) Referenced credentialName not found: "web-api-cert"
+```
+
+You can create the `ratings-cert`, `recommendation-cert` and `web-api-cert` credentials using cert-manager, refer to the Deploy Istio workshop for details on understanding these steps: 
+
+```bash
+# prep for the installation of cert manager:
+kubectl create namespace cert-manager
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+# do the actual installation:
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.2.0 --create-namespace --set installCRDs=true
+# wait for cert-manager pods to come up
+kubectl wait --for=condition=Ready pod --all -n cert-manager
+# install root certs/key (just for the lab, you'd use Vault, LetsEncrypt, or your own PKI in production)
+kubectl create -n cert-manager secret tls cert-manager-cacerts --cert labs/03/certs/ca/root-ca.crt --key labs/03/certs/ca/root-ca.key
+# deploy a cluster issuer
+kubectl apply -f labs/03/cert-manager/ca-cluster-issuer.yaml 
+# ask cert manager to provision certs
+kubectl apply -f labs/03/cert-manager/web-api-istioinaction-io-cert.yaml 
+kubectl apply -f labs/03/cert-manager/recommendation-istioinaction-io-cert.yaml 
+kubectl apply -f labs/03/cert-manager/ratings-istioinaction-io-cert.yaml 
+```
+
+Check on the secrets created by the cert manager:
+
+```bash
+kubectl get Certificate -n istio-ingress
+kubectl get secrets -n istio-ingress
+```
+
+Now the cert should be loaded in the istio ingress gateway and marked as `ACTIVE`, for example:
+
+```bash
+istioctl pc secret deploy/istio-ingressgateway -n istio-ingress 
+```
+
+You should see these secrets are loaded to the `istio-ingressgateway` deployment running in the `istio-ingress` namespace:
+
+```text
+RESOURCE NAME                        TYPE           STATUS     VALID CERT     SERIAL NUMBER                               NOT AFTER                NOT BEFORE
+kubernetes://ratings-cert            Cert Chain     ACTIVE     true           37366564123948328554505903164932401801      2022-04-13T16:50:38Z     2022-01-13T16:50:38Z
+kubernetes://web-api-cert            Cert Chain     ACTIVE     true           256089257652381406128593923667139355802     2022-04-13T16:50:37Z     2022-01-13T16:50:37Z
+kubernetes://recommendation-cert     Cert Chain     ACTIVE     true           41739643360456883013502421916594136332      2022-04-13T16:50:37Z     2022-01-13T16:50:37Z
+```
+
+Run the analyzer command again to ensure no error is reported:
+
+```bash
+istioctl analyze -n istio-ingress
+```
+
+### VirtualService resources
+
+When the traffic arrives at the Gateway for any of our host (e.g. web-api.istioinaction.io:443), you need route configuration to define where the traffic goes which you can define it in a `VirtualService` resource. Who would own the VirtualService resource?  A common model is that each team owns the VirtualService resource which is what Team A and B will follow.  Another model is to leverage VirtualService delegation so that team can learn as minimal as possible on the resource. Team C will follow this model.
+#### VirtualService and Gateway resources owned by different team
 
 Team A and B owns the virtual service resources while team C owns only the delegated virtual service resource.
 
-### VirtualService delegation
+#### VirtualService delegation
 Team C prefers to learn as little Istio resources as possible. The gateway team decides to use Virtual Service delegation feature in Istio to handle this sceanrio where the gateway team can delegate the routing behavior to be defined from another VirtualService, which is often called delegated VirtualService.
 ### Listener ports for the gateway resource
 

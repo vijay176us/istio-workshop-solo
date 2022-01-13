@@ -1,14 +1,14 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: recommendation
-  namespace: recommendation-ns
+  name: ratings
+  namespace: istio-ingress
 spec:
   hosts:
-  - "recommendation.istioinaction.io"
+  - "ratings.istioinaction.io"
   gateways:
-  - recommendation-gateway
+  - ratings-gateway
   http:
-  - route:
-    - destination:
-        host: recommendation.recommendation-ns.svc.cluster.local
+  - delegate:
+      name: ratings-delegated-vs
+      namespace: ratings-ns
