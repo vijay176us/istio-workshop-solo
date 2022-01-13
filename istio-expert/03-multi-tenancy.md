@@ -190,8 +190,107 @@ When the traffic arrives at the Gateway for any of our host (e.g. web-api.istioi
 
 Team A and B owns the virtual service resources while team C owns only the delegated virtual service resource.
 
+You can review the `web-api-vs.yaml` file:
+
+```bash
+cat labs/03/web-api-vs.yaml
+```
+
+From the output, note the resource is for the `web-api` namespace, and the value for `gateways`, which refers to the `web-api-gateway` resource in the `istio-ingress` namespace:
+
+```output
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-api-vs
+  namespace: web-api
+spec:
+  hosts:
+  - "web-api.istioinaction.io"
+  gateways:
+  - istio-ingress/web-api-gateway
+  http:
+  - route:
+    - destination:
+        host: web-api.web-api-ns.svc.cluster.local
+```
+
+Acting as team A and B, deploy the virtual service files for the `web-api-gateway` and `recommendation-gateway`:
+
+```bash
+kubectl apply -f labs/03/web-api-vs.yaml
+kubectl apply -f labs/03/recommendation-vs.yaml
+```
+
 #### VirtualService delegation
-Team C prefers to learn as little Istio resources as possible. The gateway team decides to use Virtual Service delegation feature in Istio to handle this sceanrio where the gateway team can delegate the routing behavior to be defined from another VirtualService, which is often called delegated VirtualService.
+Team C prefers to learn as little Istio resources as possible. The gateway team plans to use Virtual Service delegation feature in Istio to handle this sceanrio where the gateway team can delegate the routing behavior to be defined from another VirtualService, which is often called delegated VirtualService.
+
+You can review the `ratings-vs.yaml` file for the gateway team:
+
+```bash
+cat labs/03/ratings-vs.yaml
+```
+
+From the output, note the value for `gateways`, which refers to the `web-api-gateway` resource in the `istio-ingress` namespace:
+
+```output
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ratings
+  namespace: istio-ingress
+spec:
+  hosts:
+  - "ratings.istioinaction.io"
+  gateways:
+  - ratings-gateway
+  http:
+  - delegate:
+      name: ratings-delegated-vs
+      namespace: ratings-ns
+```
+
+Review the delegated VirtualService for team C:
+
+```bash
+cat labs/03/ratings-delegated-vs.yaml
+```
+
+Note that the name and namespace of the resource, which should match exactly what is in the `delegate` field in the  `ratings` VirtualService resource:
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ratings-delegated-vs
+  namespace: ratings-ns
+spec:
+  http:
+  - route:
+    - destination:
+        host: ratings.ratings-ns.svc.cluster.local
+```
+
+Acting as the gateway team, deploy the `ratings-vs` virtual service file:
+
+```bash
+kubectl apply -f labs/03/ratings-vs.yaml
+```
+
+Acting as team C, deploy the `ratings-delegated-vs` virtual service file:
+
+```bash
+kubectl apply -f labs/03/ratings-delegated-vs.yaml
+```
+
+Test all three urls to ensure they work:
+
+```
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: recommendation.istioinaction.io" https://recommendation.istioinaction.io --resolve recommendation.istioinaction.io:443:$GATEWAY_IP
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: ratings.istioinaction.io" https://ratings.istioinaction.io --resolve ratings.istioinaction.io:443:$GATEWAY_IP
+```
+
 ### Listener ports for the gateway resource
 
 Note: mention exposing ports on gateway as needed

@@ -7,7 +7,7 @@ spec:
   hosts:
   - "recommendation.istioinaction.io"
   gateways:
-  - recommendation-gateway
+  - istio-ingress/recommendation-gateway
   http:
   - route:
     - destination:

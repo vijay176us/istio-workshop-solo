@@ -2,12 +2,12 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-api-vs
-  namespace: istio-ingress
+  namespace: web-api-ns
 spec:
   hosts:
   - "web-api.istioinaction.io"
   gateways:
-  - web-api-gateway
+  - istio-ingress/web-api-gateway
   http:
   - route:
     - destination:
