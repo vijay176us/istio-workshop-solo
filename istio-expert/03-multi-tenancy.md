@@ -158,8 +158,18 @@ kubectl apply -f labs/03/cert-manager/ratings-istioinaction-io-cert.yaml
 Check on the secrets created by the cert manager:
 
 ```bash
-kubectl get Certificate -n istio-ingress
 kubectl get secrets -n istio-ingress
+```
+
+Confirm the secrets are created:
+
+```text
+NAME                                               TYPE                                  DATA   AGE
+default-token-g5km4                                kubernetes.io/service-account-token   3      2d3h
+istio-ingressgateway-service-account-token-zv2sb   kubernetes.io/service-account-token   3      2d3h
+ratings-cert                                       kubernetes.io/tls                     3      28h
+recommendation-cert                                kubernetes.io/tls                     3      28h
+web-api-cert                                       kubernetes.io/tls                     3      28h
 ```
 
 Now the cert should be loaded in the istio ingress gateway and marked as `ACTIVE`, for example:
@@ -215,7 +225,7 @@ spec:
         host: web-api.web-api-ns.svc.cluster.local
 ```
 
-Acting as team A and B, deploy the virtual service files for the `web-api-gateway` and `recommendation-gateway`:
+Review the content for `labs/03/recommendation-vs.yaml`. Acting as team A and B, deploy the virtual service files for the `web-api-gateway` (to the `web-api` namespace) and `recommendation-gateway` (to the `recommendation` namespace):
 
 ```bash
 kubectl apply -f labs/03/web-api-vs.yaml
@@ -256,7 +266,7 @@ Review the delegated VirtualService for team C:
 cat labs/03/ratings-delegated-vs.yaml
 ```
 
-Note that the name and namespace of the resource, which should match exactly what is in the `delegate` field in the  `ratings` VirtualService resource:
+Note that the name and namespace of the resource, which should match exactly what is in the `delegate` field in the  `ratings` VirtualService resource. This delegated virtual service resource controls the route behavior for traffic arriving at `ratings.istioinaction.io` without requiring any change in its parent virtual service resource (e.g. `ratings`).
 
 ```text
 apiVersion: networking.istio.io/v1beta1
@@ -271,13 +281,13 @@ spec:
         host: ratings.ratings-ns.svc.cluster.local
 ```
 
-Acting as the gateway team, deploy the `ratings-vs` virtual service file:
+Acting as the gateway team, deploy the `ratings-vs` virtual service file to the `istio-ingress` namespace:
 
 ```bash
 kubectl apply -f labs/03/ratings-vs.yaml
 ```
 
-Acting as team C, deploy the `ratings-delegated-vs` virtual service file:
+Acting as team C, deploy the `ratings-delegated-vs` virtual service file to the `ratings-ns` namespace:
 
 ```bash
 kubectl apply -f labs/03/ratings-delegated-vs.yaml
