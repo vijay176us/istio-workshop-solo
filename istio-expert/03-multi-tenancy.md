@@ -352,7 +352,7 @@ spec:
 
 If you recall, you used `VirtualService` delegation for the `ratings-gateway` so the `ratings.istioinaction.io` hostname is defined in the `ratings-vs.yaml` deployed in the `istio-ingress` namespace. The `ratings-delegated-vs.yaml` file doesn't configure `hosts` or `gateways` field.  The fix is to update `ratings-ns/ratings.istioinaction.io` to `ratings.istioinaction.io` because the `ratings-vs.yaml` is deployed in the same namespace as the `ratings-gateway`.
 
-TODO: draw a diagram here
+TODO: draw a diagram here for VS delegation
 
 Deploy the correct `ratings-gateway` with `hosts` set to `ratings.istioinaction.io`:
 
@@ -374,7 +374,14 @@ curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: ratings.istioinaction.io"
 
 ### Global host name
 
-Cover recommendation service using global hostname such as recommendation.istioinaction.io for client in the mesh and client out of the mesh.
+When the `web-api` service calls the `recommendation` service, it uses the `http://recommendation.recommendation-ns:8080` as the value of its `UPSTREAM_URIS`.  If you don't recall where this is defined, check out the `labs/03/web-api.yaml` file.
+
+When you run the curl command from outside of the Kubernetes cluter to access the `recommendation` service, you used `recommendation.istioinaction.io` because that is the hostname the gateway team has configured on the Istio's ingress gateway to route the traffic to the `recommendation` service.
+
+Wouldn't be nice if you can have the global host name `recommendation.istioinaction.io` for the `recommendation` service, regardless of where the clients are calling it whether they are from inside of the mesh or outside of the mesh? You can use Istio's support for global host name to configure this.
+
+TODO: a diagram for this, clients inside the mesh and clients outside of mesh.
+
 
 ## Service Isolation
 
