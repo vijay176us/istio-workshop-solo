@@ -255,7 +255,7 @@ From the output, note the value for `gateways`, which refers to the `web-api-gat
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: ratings
+  name: ratings-vs
   namespace: istio-ingress
 spec:
   hosts:
@@ -274,7 +274,7 @@ Review the delegated VirtualService for team C:
 cat labs/03/ratings-delegated-vs.yaml
 ```
 
-Note that the name and namespace of the resource, which should match exactly what is in the `delegate` field in the  `ratings` VirtualService resource. This delegated virtual service resource controls the route behavior for traffic arriving at `ratings.istioinaction.io` without requiring any change in its parent virtual service resource (e.g. `ratings`).
+Note that the name and namespace of the resource, which should match exactly what is in the `delegate` field in the `ratings-vs` VirtualService resource. This delegated virtual service resource controls the route behavior for traffic arriving at `ratings.istioinaction.io` without requiring any change in its parent virtual service resource (e.g. `ratings`).
 
 ```text
 apiVersion: networking.istio.io/v1beta1
@@ -417,13 +417,13 @@ Second, review the ServiceEntry resource in the `recommendation-se.yaml` file:
 cat labs/03/recommendation-se.yaml
 ```
 
-You can see the global host name for `recommendation.istio.io`, along with `workloadSelector` that selects which workload the hosts are for, and port `8080` for the `app: recommendation` workload. Note there is no `addresses` field in this ServiceEntry resource.
+You can see the host name for `recommendation.istio.io`, along with `workloadSelector` that selects which workload the hosts are for, and port `8080` for the `app: recommendation` workload. Note there is no `addresses` field in this ServiceEntry resource.
 
 ```text
 apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
 metadata:
-  name: recommendation-global-host
+  name: recommendation-se
   namespace: recommendation-ns
 spec:
   hosts:
@@ -484,13 +484,21 @@ Team gateway (`istio-ingress` namespace):
 -->
 
 Team A (`web-api-ns` namespace):
-- The `web-api` service, plus its VirtualService resource. The `web-api` service is consumed by the `istio-ingressgateway` service and should not be made avail to any other teams.
+- The `web-api` service, plus its VirtualService resource. 
+- The `web-api` service calls the `recommendation` service and nothing else. The `web-api` service is consumed by the `istio-ingressgateway` service and should not be made available to any other teams.
 
 Team B (`recommendation-ns` & `purchase-history-ns` namespaces):
-- The `recommendation` and `purchase-history` service, plus the VirtualService and ServiceEntry resources for the `recommendation` service. The `purchase-history` service is an internal service and should not be exposed outside of the team. The `recommendation` service is consumed by the `web-api` service and the `istio-ingressgateway` service. It should not be made avail to any other teams.
+- The `recommendation` and `purchase-history` service, plus the VirtualService and ServiceEntry resources for the `recommendation` service. 
+- The `purchase-history` service doesn't call any other service. The `purchase-history` service is an internal service and should not be exposed outside of the team. 
+- The `recommendations` service calls the `purchase-history` service and nothing else. The `recommendation` service is consumed by the `web-api` service and the `istio-ingressgateway` service. It should not be made available to any other teams.
 
 Team C (`ratings-ns` namespace):
-- The `ratings` service, plus its delegated VirtualService resource. The `ratings` service is consumed by the `istio-ingressgateway` service and should not be made avail to any other teams.
+- The `ratings` service, plus its delegated VirtualService resource. 
+- The `ratings` service doesn't call any other service. The `ratings` service is consumed by the `istio-ingressgateway` service and should not be made available to any other teams.
+
+## Service consumers
+
+The section below focuses on each team's service consumer perspectives, e.g. which other service(s) a given team calls.
 
 Acting as team A, deploy the following Sidecar resource to the `ratings-ns`:
 
@@ -563,10 +571,151 @@ spec:
 ```bash
 kubectl apply -f labs/03/sidecar-team-c.yaml -n ratings-ns
 ```
-### Kubernetes Service Isolation
+
+## Service producers
+
+The section below focuses on each team's service producer perspectives, e.g. a given service or Istio resource is made *ONLY* available to the team that needs to use it.
 
 
+### Istio networking resources
 
-TODO: Talk about GM Workspace
+As explained in the [deploy Istio for production](../deploy-istio/README.md) workshop, Service owners can apply `export-To` in VirtualService, DestinationRule and ServiceEntry resources to define a list of namespaces that the Istio networking resources can be applied to.
 
+Acting as team A, adding `export-To` to the `web-api-vs` to make it available only to the `istio-ingress` namespace:
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-api-vs
+  namespace: web-api-ns
+spec:
+  hosts:
+  - "web-api.istioinaction.io"
+  gateways:
+  - istio-ingress/web-api-gateway
+  exportTo:
+  - istio-ingress
+  http:
+  - route:
+    - destination:
+        host: web-api.web-api-ns.svc.cluster.local
+```
+
+Deploy the updated `web-api-vs` resource:
+
+```bash
+kubectl apply -f labs/03/web-api-vs-exportto.yaml
+```
+
+Acting as team B, adding `export-To` to the `recommendation-vs` to make it available only to the `istio-ingress` namespace.
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: recommendation-vs
+  namespace: recommendation-ns
+spec:
+  hosts:
+  - "recommendation.istioinaction.io"
+  gateways:
+  - istio-ingress/recommendation-gateway
+  exportTo:
+  - istio-ingress
+  http:
+  - route:
+    - destination:
+        host: recommendation.recommendation-ns.svc.cluster.local
+```
+
+Also, adding `export-To` to the `recommendation-se` to make it available only to the `web-api-ns` namespace.
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: recommendation-se
+  namespace: recommendation-ns
+spec:
+  hosts:
+    - recommendation.istioinaction.io
+  exportTo:
+  - web-api-ns
+  location: MESH_INTERNAL
+  ports:
+    - name: http
+      number: 8080
+      protocol: http
+  resolution: STATIC
+  workloadSelector:
+    labels:
+      app: recommendation
+```
+
+Deploy the updated `recommendation-vs` and `recommendation-se` resources:
+
+```bash
+kubectl apply -f labs/03/recommendation-vs-exportto.yaml
+kubectl apply -f labs/03/recommendation-se-exportto.yaml
+```
+
+Acting as team C, adding `export-To` to the `ratings-delegated-vs` to make it available only to the `istio-ingress` namespace:
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ratings-delegated-vs
+  namespace: ratings-ns
+spec:
+  exportTo:
+  - istio-ingress
+  http:
+  - route:
+    - destination:
+        host: ratings.ratings-ns.svc.cluster.local
+```
+
+Deploy the updated `ratings-delegated-vs` resource:
+
+```bash
+kubectl apply -f labs/03/ratings-delegated-vs-exportto.yaml
+```
+
+TODO: add commands to view the isolated config.
+### Kubernetes services
+
+Service owners can declare their services' visibility via the `networking.istio.io/exportTo` annotation.
+
+Acting as team A, update the `web-api` service to add the `networking.istio.io/exportTo` annotation:
+
+```text
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-api
+  annotations:
+    networking.istio.io/exportTo: ".,istio-ingress"
+spec:
+  selector:
+    app: web-api
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+```
+
+Deploy the updated `web-api` service:
+
+```bash
+kubectl apply -f labs/03/web-api-service-exportto.yaml
+```
+
+## Workspaces
+
+While working with the above team concepts in Istio, 
 ## Next Lab
+
+Congratulations, you have set up multiple teams with Istio with the proper isolation. In the next lab, we will dive into certification rotation and integrate with your own PKI.

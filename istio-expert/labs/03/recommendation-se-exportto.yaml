@@ -6,6 +6,8 @@ metadata:
 spec:
   hosts:
     - recommendation.istioinaction.io
+  exportTo:
+  - web-api-ns
   location: MESH_INTERNAL
   ports:
     - name: http

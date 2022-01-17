@@ -1,13 +1,15 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: recommendation-vs
+  name: recommendation
   namespace: recommendation-ns
 spec:
   hosts:
   - "recommendation.istioinaction.io"
   gateways:
   - istio-ingress/recommendation-gateway
+  exportTo:
+  - istio-ingress
   http:
   - route:
     - destination:
