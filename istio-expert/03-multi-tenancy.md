@@ -24,7 +24,7 @@ Team C doesn't consume any other services, it produces the `ratings` service for
 
 TODO: add a diagram for the gateway team and team A, B and C
 
-The lab below assumes you have Istio 1.12.0 installed with revision 1-12-0 with istio ingress gateway in the istio-ingress namespace.  If you don't, you can setup Istio using the steps below with `istioctl` version 1.12.1:
+The lab below assumes you have Istio 1.12.1 installed with revision 1-12-1 with istio ingress gateway in the istio-ingress namespace.  If you don't, you can setup Istio using the steps below with `istioctl` version 1.12.1:
 
 ```bash
 kubectl create ns istio-system
@@ -47,17 +47,17 @@ Create the namespaces for team A/B/C:
 ```bash
 # team A:
 kubectl create namespace web-api-ns
-kubectl label namespace web-api-ns istio.io/rev=1-12-0
+kubectl label namespace web-api-ns istio.io/rev=1-12-1
 
 # team B:
 kubectl create namespace recommendation-ns
 kubectl create namespace purchase-history-ns
-kubectl label namespace recommendation-ns istio.io/rev=1-12-0
-kubectl label namespace purchase-history-ns istio.io/rev=1-12-0
+kubectl label namespace recommendation-ns istio.io/rev=1-12-1
+kubectl label namespace purchase-history-ns istio.io/rev=1-12-1
 
 # team C:
 kubectl create namespace ratings-ns
-kubectl label namespace ratings-ns istio.io/rev=1-12-0
+kubectl label namespace ratings-ns istio.io/rev=1-12-1
 
 ```
 
