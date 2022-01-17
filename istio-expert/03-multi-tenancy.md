@@ -303,15 +303,74 @@ kubectl apply -f labs/03/ratings-delegated-vs.yaml
 
 Test all three urls to ensure they work:
 
-```
+```bash
 curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
 curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: recommendation.istioinaction.io" https://recommendation.istioinaction.io --resolve recommendation.istioinaction.io:443:$GATEWAY_IP
 curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: ratings.istioinaction.io" https://ratings.istioinaction.io --resolve ratings.istioinaction.io:443:$GATEWAY_IP
 ```
 
-### Listener ports for the gateway resource
+You'll get greeting messages from the `web-api.istioinaction.io` and `recommendation.istioinaction.io` hosts, but you'll notice you'll get an empty reply from the `ratings.istioinaction.io` host.  Run the analyzer command to troubleshoot this:
 
-Note: mention exposing ports on gateway as needed
+```bash
+istioctl analyze -n istio-ingress
+```
+
+The output is very helpful, which indicated that there is no `VirtualService` found thus the gateway doesn't know where to route when traffic arrives at `ratings.istioinaction.io`:
+
+```text
+Warning [IST0132] (VirtualService istio-ingress/ratings) one or more host [ratings.istioinaction.io] defined in VirtualService istio-ingress/ratings not found in Gateway istio-ingress/ratings-gateway.
+```
+
+Review the `ratings-gw-https.yaml` file:
+
+```bash
+cat labs/03/ratings-gw-https.yaml
+```
+
+From the output, do you see what may be wrong here?
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: ratings-gateway
+  namespace: istio-ingress
+spec:
+  selector:
+    istio: ingressgateway 
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "ratings-ns/ratings.istioinaction.io"    
+    tls:
+      mode: SIMPLE
+      credentialName: ratings-cert
+```
+
+If you recall, you used `VirtualService` delegation for the `ratings-gateway` so the `ratings.istioinaction.io` hostname is defined in the `ratings-vs.yaml` deployed in the `istio-ingress` namespace. The `ratings-delegated-vs.yaml` file doesn't configure `hosts` or `gateways` field.  The fix is to update `ratings-ns/ratings.istioinaction.io` to `ratings.istioinaction.io` because the `ratings-vs.yaml` is deployed in the same namespace as the `ratings-gateway`.
+
+TODO: draw a diagram here
+
+Deploy the correct `ratings-gateway` with `hosts` set to `ratings.istioinaction.io`:
+
+```bash
+kubectl apply -f labs/03/ratings-gw-https-correct-host.yaml
+```
+
+Run the analyzer command to confirm the previous host not found warning is gone:
+
+```bash
+istioctl analyze -n istio-ingress
+```
+
+Access the `ratings.istioinaction.io` url, you will get the `Hello From Ratings!` greeting:
+
+```bash
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: ratings.istioinaction.io" https://ratings.istioinaction.io --resolve ratings.istioinaction.io:443:$GATEWAY_IP
+```
 
 ### Global host name
 
