@@ -382,7 +382,16 @@ Wouldn't be nice if you can have the global host name `recommendation.istioinact
 
 TODO: a diagram for this, clients inside the mesh and clients outside of mesh.
 
+```bash
+kubectl apply -f labs/03/recommendation-vs-global-host.yaml
+kubectl apply -f labs/03/web-api-global-host.yaml -n web-api-ns
+```
 
+Visit the `web-api.istioinaction.io` url:
+
+```bash
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
+```
 ## Service Isolation
 
 ### private service and public service

@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: recommendation-global-host
+  namespace: recommendation-ns
+spec:
+  hosts:
+    - recommendation.istioinaction.io
+  location: MESH_INTERNAL
+  ports:
+    - name: http
+      number: 9080
+      protocol: http
+  resolution: STATIC
+  workloadSelector:
+    labels:
+      app: recommendation
