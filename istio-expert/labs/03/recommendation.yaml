@@ -32,7 +32,7 @@ spec:
         - name: "LISTEN_ADDR"
           value: "0.0.0.0:8080"
         - name: "UPSTREAM_URIS"
-          value: "http://purchase-history:8080"
+          value: "http://purchase-history.purchase-history-ns:8080"
         - name: "NAME"
           value: "recommendation"
         - name: "MESSAGE"

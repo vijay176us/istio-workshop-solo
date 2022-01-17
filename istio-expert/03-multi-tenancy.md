@@ -24,7 +24,15 @@ Team C doesn't consume any other services, it produces the `ratings` service for
 
 TODO: add a diagram for the gateway team and team A, B and C
 
-The lab below assumes you have Istio 1.12.0 installed with revision 1-12-0 with istio ingress gateway in the istio-ingress namespace.
+The lab below assumes you have Istio 1.12.0 installed with revision 1-12-0 with istio ingress gateway in the istio-ingress namespace.  If you don't, you can setup Istio using the steps below with `istioctl` version 1.12.1:
+
+```bash
+kubectl create ns istio-system
+kubectl apply -f ../deploy-istio/labs/02/istiod-service.yaml
+istioctl install -y -n istio-system -f ../deploy-istio/labs/02/control-plane.yaml --revision 1-12-1
+kubectl create namespace istio-ingress
+istioctl install -y -n istio-ingress -f ../deploy-istio/labs/04/ingress-gateways.yaml --revision 1-12-1
+```
 ### Set up the Kubernetes services for teams
 
 Let us clean up some deployments from the prior lab as we need to re-organize them as teams:
