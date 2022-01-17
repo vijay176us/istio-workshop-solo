@@ -9,7 +9,7 @@ spec:
   location: MESH_INTERNAL
   ports:
     - name: http
-      number: 9080
+      number: 8080
       protocol: http
   resolution: STATIC
   workloadSelector:

@@ -382,16 +382,96 @@ Wouldn't be nice if you can have the global host name `recommendation.istioinact
 
 TODO: a diagram for this, clients inside the mesh and clients outside of mesh.
 
+First, we need to enable the `ISTIO_META_DNS_AUTO_ALLOCATE` configuration in Istio control plane's `proxyMetadata`, so that Istio can automatically allocat IP addresses for ServiceEntrys that do not explicitly define one.  Open up the `control-plane.yaml`:
+
 ```bash
-kubectl apply -f labs/03/recommendation-vs-global-host.yaml
+cat labs/03/control-plane.yaml
+```
+
+The `ISTIO_META_DNS_AUTO_ALLOCATE: "true"` is added to the proxyMetadata configuration:
+
+```text
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: control-plane
+spec:
+  profile: minimal
+  meshConfig:
+    defaultConfig:
+      proxyMetadata:
+        ISTIO_META_DNS_CAPTURE: "true"
+        ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+    enablePrometheusMerge: true
+```
+
+Deploy the update to your Istio control plane:
+
+```bash
+istioctl install -y -n istio-system -f labs/03/control-plane.yaml --revision 1-12-1
+```
+
+Second, review the ServiceEntry resource in the `recommendation-se.yaml` file:
+
+```bash
+cat labs/03/recommendation-se.yaml
+```
+
+You can see the global host name for `recommendation.istio.io`, along with `workloadSelector` that selects which workload the hosts are for, and port `8080` for the `app: recommendation` workload. Note there is no `addresses` field in this ServiceEntry resource.
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: recommendation-global-host
+  namespace: recommendation-ns
+spec:
+  hosts:
+    - recommendation.istioinaction.io
+  location: MESH_INTERNAL
+  ports:
+    - name: http
+      number: 8080
+      protocol: http
+  resolution: STATIC
+  workloadSelector:
+    labels:
+      app: recommendation
+```
+
+Note:  The workload selector and ports have to be correct, else, you will get the `Could not resolve host: recommendation.istioinaction.io` error.
+
+Deploy the above ServiceEntry resource:
+
+```bash
+kubectl apply -f labs/03/recommendation-se.yaml
+```
+
+Third, update the `web-api` service to use the newly created global host name (`recommendation.istioinaction.io`), by replacing the current value of `UPSTREAM_URIS` to `http://recommendation.istioinaction.io:8080`:
+
+```bash
+cat labs/03/web-api-global-host.yaml
+```
+
+Deploy the updated `web-api` service:
+
+```bash
 kubectl apply -f labs/03/web-api-global-host.yaml -n web-api-ns
 ```
 
-Visit the `web-api.istioinaction.io` url:
+You can confirm the global host name is working by visiting the `web-api.istioinaction.io` url which calls `recommendation.istioinaction.io`:
 
 ```bash
 curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
 ```
+
+You can also continue to visit the `recommendation.istioinaction.io`:
+
+```bash
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: recommendation.istioinaction.io" https://recommendation.istioinaction.io --resolve recommendation.istioinaction.io:443:$GATEWAY_IP
+```
+
+Congratulations, you have setup global host name for the `recommendation` service successfully!
 ## Service Isolation
 
 ### private service and public service
