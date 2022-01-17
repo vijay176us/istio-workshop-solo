@@ -474,15 +474,98 @@ curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: recommendation.istioinact
 Congratulations, you have setup global host name for the `recommendation` service successfully!
 ## Service Isolation
 
-### private service and public service
+By default, Istio networking resources and services are visible to all services running in all namespaces that are part of the Istio service mesh. As part of the team concept, it is often desirable to have clear boundry among teams where the services and Istio resources are isolated whenever possible.
 
-What if only 1 service is public and others are private services?
+Let us review the desired configuration for team A, B, and C:
 
-Sharing public services among teams?  To which team?
+<!--
+Team gateway (`istio-ingress` namespace):
+- The `istio-ingressgateway` service, its Gateway resources, and VirtualService resources should be isolated within the `istio-ingress` namespace. 
+-->
 
-## Config Isolation
+Team A (`web-api-ns` namespace):
+- The `web-api` service, plus its VirtualService resource. The `web-api` service is consumed by the `istio-ingressgateway` service and should not be made avail to any other teams.
 
-### Config isolation to specific ports
+Team B (`recommendation-ns` & `purchase-history-ns` namespaces):
+- The `recommendation` and `purchase-history` service, plus the VirtualService and ServiceEntry resources for the `recommendation` service. The `purchase-history` service is an internal service and should not be exposed outside of the team. The `recommendation` service is consumed by the `web-api` service and the `istio-ingressgateway` service. It should not be made avail to any other teams.
+
+Team C (`ratings-ns` namespace):
+- The `ratings` service, plus its delegated VirtualService resource. The `ratings` service is consumed by the `istio-ingressgateway` service and should not be made avail to any other teams.
+
+Acting as team A, deploy the following Sidecar resource to the `ratings-ns`:
+
+```text
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: default
+spec:
+  egress:
+  - hosts:
+    - "./*"    
+    - "istio-system/*"
+    - "istio-ingress/*"
+    - "recommendation-ns/*"
+    ports:
+      number: 8080
+      protocol: HTTP
+      name: egresshttp
+```
+
+```bash
+kubectl apply -f labs/03/sidecar-team-a.yaml -n web-api-ns
+```
+
+Acting as team B, deploy the Sidecar resource to the `recommendation-ns` and `purchase-history-ns` namespaces:
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: default
+spec:
+  egress:
+  - hosts:
+    - "istio-system/*"
+    - "istio-ingress/*"
+    - "recommendation-ns/*"
+    - "purchase-history-ns/*"
+    ports:
+      number: 8080
+      protocol: HTTP
+      name: egresshttp
+```
+
+```bash
+kubectl apply -f labs/03/sidecar-team-b.yaml -n recommendation-ns
+kubectl apply -f labs/03/sidecar-team-b.yaml -n purchase-history-ns
+```
+
+Acting as team C, deploy the Sidecar resource to the `ratings-ns`:
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: default
+spec:
+  egress:
+  - hosts:
+    - "./*"    
+    - "istio-system/*"
+    - "istio-ingress/*"
+    ports:
+      number: 8080
+      protocol: HTTP
+      name: egresshttp
+```
+
+```bash
+kubectl apply -f labs/03/sidecar-team-c.yaml -n ratings-ns
+```
+### Kubernetes Service Isolation
+
+
 
 TODO: Talk about GM Workspace
 
