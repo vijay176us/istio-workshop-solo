@@ -9,7 +9,7 @@ spec:
     - "istio-system/*"
     - "istio-ingress/*"
     - "recommendation-ns/*"
-    ports:
+    port:
       number: 8080
       protocol: HTTP
       name: egresshttp

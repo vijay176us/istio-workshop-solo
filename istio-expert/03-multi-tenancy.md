@@ -514,7 +514,7 @@ spec:
     - "istio-system/*"
     - "istio-ingress/*"
     - "recommendation-ns/*"
-    ports:
+    port:
       number: 8080
       protocol: HTTP
       name: egresshttp
@@ -538,7 +538,7 @@ spec:
     - "istio-ingress/*"
     - "recommendation-ns/*"
     - "purchase-history-ns/*"
-    ports:
+    port:
       number: 8080
       protocol: HTTP
       name: egresshttp
@@ -562,7 +562,7 @@ spec:
     - "./*"    
     - "istio-system/*"
     - "istio-ingress/*"
-    ports:
+    port:
       number: 8080
       protocol: HTTP
       name: egresshttp
