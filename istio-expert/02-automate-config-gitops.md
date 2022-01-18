@@ -7,6 +7,9 @@ In this lab, we will show how to store your Istio configuration in Git and have 
 ## Install Argo CD & Argo Rollouts
 
 ```
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.12/samples/addons/prometheus.yaml
+
+
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl -n argocd patch secret argocd-secret \
@@ -65,8 +68,10 @@ spec:
 
 1. Select **CREATE APPLICATION**
 2. Set **Repository URL** to `https://github.com/argoproj/argocd-example-apps.git`
-3. Set **Path** to `bookinfo`
-4. Click **Create** at the top
+3. Set **Path** to `bookinfo/overlay/app/istio-rollout/`
+4. Set **Sync Policy** to Automatic
+5. Set **Cluster URL** to `https://kubernetes.default.svc`
+6. Click **Create** at the top
 
 # Perform the update
 
