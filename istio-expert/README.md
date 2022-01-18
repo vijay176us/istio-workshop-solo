@@ -6,10 +6,9 @@ This is the third part in a series of Istio workshops designed to get users up a
 * Automating config with Fluxcd and Flagger
 * Multi-tenancy
 * Certificate rotation and PKI integration
-* Bridging to VMs
 * Multi-cluster deployments
 
-If you're somewhat familiar with Istio, or have participated in our previous two workshops, this workshop will show you how best to integrate Istio with the rest of your workflows, tooling and organization. We will also cover integrating VMs and multicluster Kubernetes. 
+If you're somewhat familiar with Istio, or have participated in our previous two workshops, this workshop will show you how best to integrate Istio with the rest of your workflows, tooling and organization. We will also cover integrating multicluster Kubernetes. 
 
 We've cultivated a lot of this knowledge from working organizations across the world and helping them operationalize Istio. The workshop will end with a certification exam to test your knowledge and those that pass will be issued a Credly Badge certifying their status. 
 
