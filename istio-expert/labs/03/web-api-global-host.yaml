@@ -27,7 +27,7 @@ spec:
         - name: "LISTEN_ADDR"
           value: "0.0.0.0:8080"
         - name: "UPSTREAM_URIS"
-          value: "http://recommendation.istioinaction.io:8080"
+          value: "http://recommendation.istioinaction.io"
         - name: "NAME"
           value: "web-api"
         - name: "MESSAGE"

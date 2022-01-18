@@ -431,8 +431,9 @@ spec:
   location: MESH_INTERNAL
   ports:
     - name: http
-      number: 8080
+      number: 80
       protocol: http
+      targetPort: 8080
   resolution: STATIC
   workloadSelector:
     labels:
@@ -447,7 +448,7 @@ Deploy the above ServiceEntry resource:
 kubectl apply -f labs/03/recommendation-se.yaml
 ```
 
-Third, update the `web-api` service to use the newly created global host name (`recommendation.istioinaction.io`), by replacing the current value of `UPSTREAM_URIS` to `http://recommendation.istioinaction.io:8080`:
+Third, update the `web-api` service to use the newly created global host name (`recommendation.istioinaction.io`), by replacing the current value of `UPSTREAM_URIS` to `http://recommendation.istioinaction.io`:
 
 ```bash
 cat labs/03/web-api-global-host.yaml
@@ -654,8 +655,9 @@ spec:
   location: MESH_INTERNAL
   ports:
     - name: http
-      number: 8080
+      number: 80
       protocol: http
+      targetPort: 8080
   resolution: STATIC
   workloadSelector:
     labels:
