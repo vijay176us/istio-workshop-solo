@@ -8,6 +8,15 @@ Out of the box, Istio’s CA will automatically create a signing key/certificate
 
 If you’re just exploring Istio, this default root CA should be sufficient. If you’re setting up for a live system, you should probably not use the built-in, self-signed root. In fact, you likely already have PKI in your organization and would be able to introduce Intermediate certificates that can be used for Istio workload signing. These intermediates are signed by your existing trusted Roots.
 
+## Understand Istio's certificate rotation
+
+When your workload certificate expires?
+
+How workload certification rotation works?
+
+How often does the workload certificate rotate?
+
+What about root cert?
 ## Cert Manager
 
 
@@ -66,7 +75,7 @@ spec:
 -  Mount certs and keys from the Cert Manager Certificates
 
 ```
-istioctl install -y -n istio-system -f labs/01/control-plane-cert-manager.yaml --revision=1-10-1
+istioctl install -y -n istio-system -f labs/04/control-plane-cert-manager.yaml --revision=1-12-1
 ```
 
 5. Verify
