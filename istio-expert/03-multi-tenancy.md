@@ -500,7 +500,7 @@ Team C (`ratings-ns` namespace):
 
 The section below focuses on each team's service consumer perspectives, e.g. which other service(s) a given team calls.
 
-Acting as team A, deploy the following Sidecar resource to the `web-api-ns`:
+Acting as team A, you want to restrict all of the services owned by the team to reach out ONLY to the current namespace (represented as `.` below), `istio-system` and `recommendation-ns` namespaces as the `web-api` service calls the `recommendation` service:
 
 ```text
 apiVersion: networking.istio.io/v1beta1
@@ -515,11 +515,13 @@ spec:
     - "recommendation-ns/*"
 ```
 
+Deploy the following Sidecar resource to the `web-api-ns`:
+
 ```bash
 kubectl apply -f labs/03/sidecar-team-a.yaml -n web-api-ns
 ```
 
-Acting as team B, deploy the Sidecar resource to the `recommendation-ns` and `purchase-history-ns` namespaces:
+Acting as team B, you want to restrict all of the services owned by the team to reach out ONLY to the team's namespaces (`recommendation-ns` and `purchase-history-ns`) on port `8080`, and the `istio-system` namespace:
 
 ```
 apiVersion: networking.istio.io/v1beta1
@@ -539,12 +541,14 @@ spec:
     - "istio-system/*"
 ```
 
+Deploy the above Sidecar resource to the `recommendation-ns` and `purchase-history-ns` namespaces:
+
 ```bash
 kubectl apply -f labs/03/sidecar-team-b.yaml -n recommendation-ns
 kubectl apply -f labs/03/sidecar-team-b.yaml -n purchase-history-ns
 ```
 
-Acting as team C, deploy the Sidecar resource to the `ratings-ns`:
+Acting as team C, you want to restrict all of the services owned by the team to reach out ONLY to the current namespace (represented as `.` below)on port `8080`, and the `istio-system` namespace:
 
 ```
 apiVersion: networking.istio.io/v1beta1
@@ -563,9 +567,20 @@ spec:
     - "istio-system/*"
 ```
 
+Deploy the above Sidecar resource to the `ratings-ns`:
+
 ```bash
 kubectl apply -f labs/03/sidecar-team-c.yaml -n ratings-ns
 ```
+
+Confirm that all services continue to work by visiting `web-api.istioinaction.io` and `ratings.istioinaction.io`:
+
+```bash
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: ratings.istioinaction.io" https://ratings.istioinaction.io --resolve ratings.istioinaction.io:443:$GATEWAY_IP
+```
+
+Note: you may be wondering why the `sidecar-team-a.yaml` file doesn't restrict one or more given ports like the sidecar resource for team B or C's. The reason is the `web-api` deployment's sidecar proxy needs to use DNS to lookup the `recommendation.istioinaction.io` hostname, yet Istio's sidecar resource port protocol doesn't support the `DNS` type yet.
 
 ## Service producers
 
@@ -677,23 +692,42 @@ Deploy the updated `ratings-delegated-vs` resource:
 kubectl apply -f labs/03/ratings-delegated-vs-exportto.yaml
 ```
 
+Confirm that all services continue to work by visiting `web-api.istioinaction.io` and `ratings.istioinaction.io`:
+
+```bash
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: ratings.istioinaction.io" https://ratings.istioinaction.io --resolve ratings.istioinaction.io:443:$GATEWAY_IP
+```
+
 TODO: add commands to view the isolated config.
 ### Kubernetes services
 
-Service owners can declare their services' visibility via the `networking.istio.io/exportTo` annotation.
+Service owners can declare their services' visibility via the `networking.istio.io/exportTo` annotation. This can be used as an extra step to further configure service visibility on top of the above methods.
 
-Acting as team A, update the `web-api` service to add the `networking.istio.io/exportTo` annotation:
+Run the `istioctl proxy-config` cmd below to understand the Envoy clusters for the Istio ingressgateway:
+
+```bash
+istioctl pc cluster deploy/istio-ingressgateway -n istio-ingress
+```
+
+You'll see an entry for the `purchase-history` service which is not desired because Istio ingress gateway doesn't need to be aware of the service:
+
+```text
+purchase-history.purchase-history-ns.svc.cluster.local     8080      -          outbound      EDS
+```
+
+You can leverage the `networking.istio.io/exportTo` annotation to fix this. Acting as team B, update the `purchase-history` service to add the `networking.istio.io/exportTo` annotation to make the service available only to the current namespace and the `recommendation-ns` namespace:
 
 ```text
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-api
+  name: purchase-history
   annotations:
-    networking.istio.io/exportTo: ".,istio-ingress"
+    networking.istio.io/exportTo: ".,recommendation-ns" 
 spec:
   selector:
-    app: web-api
+    app: purchase-history
   ports:
   - name: http
     protocol: TCP
@@ -701,10 +735,16 @@ spec:
     targetPort: 8080
 ```
 
-Deploy the updated `web-api` service:
+Deploy the updated `purchase-history` service:
 
 ```bash
-kubectl apply -f labs/03/web-api-service-exportto.yaml
+kubectl apply -f labs/03/purchase-history-service-exportto.yaml -n purchase-history-ns
+```
+
+Confirm that all related services continue to work by visiting `web-api.istioinaction.io`:
+
+```bash
+curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
 ```
 
 ## Workspaces

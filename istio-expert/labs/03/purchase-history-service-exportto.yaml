@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-api
+  name: purchase-history
   annotations:
-    networking.istio.io/exportTo: ".,istio-ingress"  
+    networking.istio.io/exportTo: ".,recommendation-ns" 
 spec:
   selector:
-    app: web-api
+    app: purchase-history
   ports:
   - name: http
     protocol: TCP
