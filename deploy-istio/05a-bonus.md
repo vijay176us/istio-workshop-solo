@@ -13,7 +13,7 @@ cat labs/05/web-api-access-logging.yaml
 We should see a file similar to this:
 
 ```yaml
-apiVersion: networking.istio.io/v1beta1
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: web-api-access-logging
