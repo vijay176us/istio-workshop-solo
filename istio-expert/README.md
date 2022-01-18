@@ -1,19 +1,19 @@
-# Operationalizing Istio
+# Operationalizing Istio for Day 2 (with Expert Certification)
 
-In this second of a two-part series of workshops on Istio service mesh, we dig into how to “day 2” Istio in your organization to improve speed of delivery and reduce mean time to recovery (MTTR). We focus on things like integrating with CI/CD and observability tooling, zero-downtime control-plane upgrades, how to rotate certs and integrate with PKI, running on VMs, and ending with multi-cluster deployments.
-
-We've cultivated a lot of this knowledge from working organizations across the world and helping them operationalize Istio.  We cover the following topics in this second workshop:
-
-
+This is the third part in a series of Istio workshops designed to get users up and running successfully and leverage the experience and best practices from Solo.io. In this workshop we will use hands-on labs to focus on using Istio in more advanced scenarios such as tenancy, PKI integration, and other workflows such as:
 
 * Zero downtime upgrades in production
 * Automating config with Fluxcd and Flagger
-* Integrate with APM/observability tools
-  * mtls with prometheus
-  * splunk?
-  * metrics merging (TODO: Move some bonus from previous)
+* Multi-tenancy
 * Certificate rotation and PKI integration
 * Bridging to VMs
 * Multi-cluster deployments
 
-## This workshop is currently WIP/Coming Soon
+If you're somewhat familiar with Istio, or have participated in our previous two workshops, this workshop will show you how best to integrate Istio with the rest of your workflows, tooling and organization. We will also cover integrating VMs and multicluster Kubernetes. 
+
+We've cultivated a lot of this knowledge from working organizations across the world and helping them operationalize Istio. The workshop will end with a certification exam to test your knowledge and those that pass will be issued a Credly Badge certifying their status. 
+
+
+## This workshop will be first delivered at SoloCon 
+
+The second annual [SoloCon](https://solocon.io) will be Feb 22, 2022. This workshop will be one of the four new workshops delivered by Christian, Lin, and Ram. 
