@@ -6,10 +6,6 @@ spec:
   egress:
   - hosts:
     - "./*"    
-    - "istio-system/*"
-    - "istio-ingress/*"
+    - "istio-system/*"  
     - "recommendation-ns/*"
-    port:
-      number: 8080
-      protocol: HTTP
-      name: egresshttp
+    

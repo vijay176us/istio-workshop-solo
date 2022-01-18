@@ -500,7 +500,7 @@ Team C (`ratings-ns` namespace):
 
 The section below focuses on each team's service consumer perspectives, e.g. which other service(s) a given team calls.
 
-Acting as team A, deploy the following Sidecar resource to the `ratings-ns`:
+Acting as team A, deploy the following Sidecar resource to the `web-api-ns`:
 
 ```text
 apiVersion: networking.istio.io/v1beta1
@@ -512,12 +512,7 @@ spec:
   - hosts:
     - "./*"    
     - "istio-system/*"
-    - "istio-ingress/*"
     - "recommendation-ns/*"
-    port:
-      number: 8080
-      protocol: HTTP
-      name: egresshttp
 ```
 
 ```bash
@@ -534,14 +529,14 @@ metadata:
 spec:
   egress:
   - hosts:
-    - "istio-system/*"
-    - "istio-ingress/*"
     - "recommendation-ns/*"
     - "purchase-history-ns/*"
     port:
       number: 8080
       protocol: HTTP
       name: egresshttp
+  - hosts:
+    - "istio-system/*"
 ```
 
 ```bash
@@ -559,13 +554,13 @@ metadata:
 spec:
   egress:
   - hosts:
-    - "./*"    
-    - "istio-system/*"
-    - "istio-ingress/*"
+    - "./*"
     port:
       number: 8080
       protocol: HTTP
       name: egresshttp
+  - hosts:           
+    - "istio-system/*"
 ```
 
 ```bash
@@ -575,7 +570,6 @@ kubectl apply -f labs/03/sidecar-team-c.yaml -n ratings-ns
 ## Service producers
 
 The section below focuses on each team's service producer perspectives, e.g. a given service or Istio resource is made *ONLY* available to the team that needs to use it.
-
 
 ### Istio networking resources
 
