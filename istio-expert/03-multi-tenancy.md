@@ -716,7 +716,7 @@ You'll see an entry for the `purchase-history` service which is not desired beca
 purchase-history.purchase-history-ns.svc.cluster.local     8080      -          outbound      EDS
 ```
 
-You can leverage the `networking.istio.io/exportTo` annotation to fix this. Acting as team B, update the `purchase-history` service to add the `networking.istio.io/exportTo` annotation to make the service available only to the current namespace and the `recommendation-ns` namespace:
+You can leverage the `networking.istio.io/exportTo` annotation to fix this. Acting as team B, update the `purchase-history` service to add the `networking.istio.io/exportTo` annotation to make the service available only to the current namespace (represented as `.` below) and the `recommendation-ns` namespace:
 
 ```text
 apiVersion: v1
@@ -747,9 +747,18 @@ Confirm that all related services continue to work by visiting `web-api.istioina
 curl --cacert ./labs/03/certs/ca/root-ca.crt -H "Host: web-api.istioinaction.io" https://web-api.istioinaction.io --resolve web-api.istioinaction.io:443:$GATEWAY_IP
 ```
 
+Rerun the `istioctl proxy-config` cmd below to confirm that `purchase-history` is removed from the list of Envoy clusters for the Istio ingressgateway:
+
+```bash
+istioctl pc cluster deploy/istio-ingressgateway -n istio-ingress | grep purchase
+```
+
+You should not get any return for this, which confirms the `networking.istio.io/exportTo` annotation is working.
 ## Workspaces
 
-While working with the above team concepts in Istio, 
+While working with the above team concepts in Istio, we realize they are not very straightforward to understand and requires lots of deep understanding of Istio's resources to configure the team boundry properly. What the lab above has only covered the configuration isolation, and there are security aspects among teams that are equally critical for enterprise to adopt Istio service mesh.
+
+Gloo Mesh v2 API introduces the Workspace and WorkspaceSettings resources, which serve as role-based abstraction for Istio service mesh multi-tenancy so that users don't need to worry about configuring Istio resources manually. Attend one of our upcoming [Gloo Mesh Multi-tenancy workshop](https://www.solo.io/events-webinars/) to learn more!
 ## Next Lab
 
-Congratulations, you have set up multiple teams with Istio with the proper isolation. In the next lab, we will dive into certification rotation and integrate with your own PKI.
+Congratulations, you have set up multiple teams with Istio with the proper configuration isolation. In the next lab, we will dive into certification rotation and integrate with your own PKI.
