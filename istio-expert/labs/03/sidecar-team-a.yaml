@@ -5,7 +5,12 @@ metadata:
 spec:
   egress:
   - hosts:
-    - "./*"    
-    - "istio-system/*"  
     - "recommendation-ns/*"
+    # port:
+    #   number: 80
+    #   protocol: HTTP
+    #   name: egresshttp   
+  # - hosts:
+    - "./*" 
+    - "istio-system/*"
     
