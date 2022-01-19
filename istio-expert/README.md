@@ -3,7 +3,7 @@
 This is the third part in a series of Istio workshops designed to get users up and running successfully and leverage the experience and best practices from Solo.io. In this workshop we will use hands-on labs to focus on using Istio in more advanced scenarios such as tenancy, PKI integration, and other workflows such as:
 
 * Zero downtime upgrades in production
-* Automating config with Fluxcd and Flagger
+* Automating config with Argo CD and Argo Rollouts
 * Multi-tenancy
 * Certificate rotation and PKI integration
 * Multi-cluster deployments
