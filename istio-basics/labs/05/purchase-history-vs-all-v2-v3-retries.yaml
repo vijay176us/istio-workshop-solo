@@ -9,7 +9,7 @@ spec:
   - match:
     - headers:
         user:
-          exact: Jason
+          exact: Tom
     route:
     - destination:
         host: purchase-history.istioinaction.svc.cluster.local

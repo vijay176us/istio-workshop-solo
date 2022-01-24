@@ -1,0 +1,37 @@
+#Gateway deployment
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: monitoring-gateway
+  namespace: istio-system
+spec:
+  profile: empty
+  # this is required because we reinstall Istio in a later track and itll prune anything with no revision
+  # istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=REGISTRY_ONLY -y prunes everything
+  revision: istio-internal
+  components:
+    ingressGateways:
+      - name: monitoring-ingressgateway
+        namespace: istio-system
+        enabled: true
+        label:
+          istio: monitoring-gateway
+        k8s:
+          env:
+          - name: CA_ADDR
+            value: istiod.istio-system.svc:15012
+          service:
+            type: LoadBalancer
+            ports:
+              - name: http-prom
+                port: 9090
+                targetPort: 9090
+              - name: http-grafana
+                port: 3000
+                targetPort: 3000
+              - name: http-jaeger
+                port: 16686
+                targetPort: 16686
+              - name: http-kiali
+                port: 20001
+                targetPort: 20001

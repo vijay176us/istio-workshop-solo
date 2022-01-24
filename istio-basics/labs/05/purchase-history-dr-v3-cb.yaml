@@ -1,9 +1,19 @@
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: web-api-dr
+  name: purchase-history-dr
 spec:
-  host: web-api.istioinaction.svc.cluster.local
+  host: purchase-history.istioinaction.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+  - name: v3
+    labels:
+      version: v3
   trafficPolicy:
     connectionPool:
       tcp:
@@ -14,5 +24,5 @@ spec:
     outlierDetection:
       consecutive5xxErrors: 1
       interval: 1s
-      baseEjectionTime: 3m
+      baseEjectionTime: 5s
       maxEjectionPercent: 100
