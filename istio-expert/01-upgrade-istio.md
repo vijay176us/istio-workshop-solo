@@ -44,7 +44,7 @@ spec:
 ```
 
 ```bash
-istioctl install -y -f labs/01/control-plane.yaml --revision 1-11-6
+istioctl install -y -f labs/01/control-plane.yaml --revision 1-11-5
 ```
 
 ```
@@ -63,7 +63,7 @@ kubectl get pod -n istio-system
 ```
 # OUTPUT:
 NAME                            READY   STATUS    RESTARTS   AGE
-istiod-1-11-6-c6d55ff4c-wkr2q   1/1     Running   0          2m1s
+istiod-1-11-5-c6d55ff4c-wkr2q   1/1     Running   0          2m1s
 ```
 
 ## Install Istio Gateway
@@ -76,7 +76,7 @@ Install the gateway and set it talk to our revisioned control plane:
 
 ```bash
 kubectl create namespace istio-ingress
-istioctl install -y -f labs/01/ingress-gateway.yaml --revision=1-11-6
+istioctl install -y -f labs/01/ingress-gateway.yaml --revision=1-11-5
 ```
 
 ## Install demo app
@@ -85,7 +85,7 @@ In this section, we'll enable automatic sidecar injection on the `default` names
 
 ```bash
 kubectl label namespace default istio-injection-
-kubectl label namespace default istio.io/rev=1-11-6 --overwrite
+kubectl label namespace default istio.io/rev=1-11-5 --overwrite
 ```
 
 ```bash
@@ -101,8 +101,8 @@ istioctl ps
 ```
 # OUTPUT:
 NAME                                                    CDS        LDS        EDS        RDS          ISTIOD                            VERSION
-httpbin-74fb669cc6-x5kmb.default                        SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-11-6-c6d55ff4c-wkr2q     1.11.5
-istio-ingressgateway-77cdfc5b86-7fdvm.istio-ingress     SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-11-6-c6d55ff4c-wkr2q     1.11.5
+httpbin-74fb669cc6-x5kmb.default                        SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-11-5-c6d55ff4c-wkr2q     1.11.5
+istio-ingressgateway-77cdfc5b86-7fdvm.istio-ingress     SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-11-5-c6d55ff4c-wkr2q     1.11.5
 ```
 
 ## Visit the httpbin application
@@ -142,8 +142,8 @@ istioctl version
 ```bash
 # OUTPUT:
 client version: 1.12.1
-control plane version: 1.8.3
-data plane version: 1.8.3 (1 proxies)
+control plane version: 1.11.5
+data plane version: 1.11.5 (2 proxies)
 ```
 
 ## Deploy Istio 1.12 control plane
@@ -161,7 +161,7 @@ kubectl get pods -n istio-system
 ```bash
 # OUTPUT:
 NAME                             READY   STATUS    RESTARTS   AGE
-istiod-1-11-6-c6d55ff4c-wb44r   1/1     Running   0          3h22m
+istiod-1-11-5-c6d55ff4c-wb44r   1/1     Running   0          3h22m
 istiod-1-12-1-8b859874f-psrv8   1/1     Running   0          15s
 ```
 
@@ -189,7 +189,7 @@ istioctl ps
 # OUTPUT
 NAME                                                    CDS        LDS        EDS        RDS          ISTIOD                             VERSION
 httpbin-56594c4bc5-vdbg4.default                        SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-12-1-8b859874f-psrv8     1.12.1
-istio-ingressgateway-54c4f455b8-mtvhr.istio-ingress     SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-11-6-c6d55ff4c-wb44r     1.11.5
+istio-ingressgateway-54c4f455b8-mtvhr.istio-ingress     SYNCED     SYNCED     SYNCED     SYNCED     istiod-1-11-5-c6d55ff4c-wb44r     1.11.5
 ```
 
 ## Upgrade Istio Gateway to 1.12
@@ -203,7 +203,7 @@ Before upgrading our current gateways, we can deploy ANOTHER gateway as a canary
 Deploy a canary ingress gateway:
 
 ```bash
-istioctl install -y -f labs/01/ingress-gateway-test.yaml --revision 1-12-1
+istioctl install -y -f labs/01/ingress-gateway-canary.yaml --revision 1-12-1
 ```
 
 You should now have two Istio gateway deployment and service.
@@ -227,7 +227,7 @@ echo $CANARY_INGRESS_HOST
 curl -I $CANARY_INGRESS_HOST
 ```
 
-If you visit your other tab, you should see that the 1-11-6 gateway is still functional.
+If you visit your other tab, you should see that the 1-11-5 gateway is still functional.
 
 Because the new gateway is working well, you can now do an inplace rolling update of your original ingress gateway:
 
@@ -241,7 +241,7 @@ Finish by deleting the canary gateway.
 istioctl manifest generate -f labs/01/ingress-gateway-canary.yaml | kubectl delete -f -
 ```
 
-## Uninstall Istio 1.11.4 control plane
+## Uninstall Istio 1.11.5 control plane
 
 Confirm that all your workloads and gateways are now talking to the 1-12-1 control plane.
 ```
@@ -255,10 +255,10 @@ istio-ingressgateway-5b9f9cc5bb-nkdlm.istio-ingress     SYNCED     SYNCED     SY
 
 Once you're ready, uninstall:
 ```
-istioctl x uninstall --revision 1-11-6
+istioctl x uninstall --revision 1-11-5
 ```
 
-That should remove the 1.11.6 istiod, leaving you with just Istio 1.12.1!
+That should remove the 1.11.5 istiod, leaving you with just Istio 1.12.1!
 
 ## Next Lab
 
