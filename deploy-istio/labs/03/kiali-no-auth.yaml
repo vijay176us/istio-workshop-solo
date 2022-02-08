@@ -12,7 +12,6 @@ spec:
   deployment:
     accessible_namespaces:
     - '**'
-    image_version: operator_version
   external_services:    
     prometheus:
       cache_duration: 10
