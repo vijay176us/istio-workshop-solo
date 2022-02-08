@@ -1,4 +1,40 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "6.4.3"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "5.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -12,14 +48,15 @@
       }
     ]
   },
+  "description": "Istio Wasm Extension Dashboard version 1.11.5",
   "editable": false,
-  "gnetId": null,
+  "gnetId": 13277,
   "graphTooltip": 0,
   "links": [],
   "panels": [
     {
       "collapsed": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -36,7 +73,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -97,13 +134,13 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(envoy_wasm_vm_null_active)",
+          "expr": "avg(envoy_wasm_envoy_wasm_runtime_null_active)",
           "interval": "",
           "legendFormat": "native",
           "refId": "A"
         },
         {
-          "expr": "avg(envoy_wasm_vm_v8_active)",
+          "expr": "avg(envoy_wasm_envoy_wasm_runtime_v8_active)",
           "interval": "",
           "legendFormat": "v8",
           "refId": "B"
@@ -157,7 +194,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -201,13 +238,13 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(envoy_wasm_vm_null_created)",
+          "expr": "avg(envoy_wasm_envoy_wasm_runtime_null_created)",
           "interval": "",
           "legendFormat": "native",
           "refId": "A"
         },
         {
-          "expr": "avg(envoy_wasm_vm_v8_created)",
+          "expr": "avg(envoy_wasm_envoy_wasm_runtime_v8_created)",
           "interval": "",
           "legendFormat": "v8",
           "refId": "B"
@@ -258,7 +295,7 @@
     },
     {
       "collapsed": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -275,7 +312,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -373,7 +410,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -483,7 +520,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -584,7 +621,7 @@
     },
     {
       "collapsed": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -601,7 +638,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -702,7 +739,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {}
