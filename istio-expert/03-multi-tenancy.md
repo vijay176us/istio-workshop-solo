@@ -22,16 +22,16 @@ Team B owns the `recommendation` and `purchase-history` service. The recommendat
 Team C doesn't consume any other services, it produces the `ratings` service for some mobile applications via Istio ingress gateway as ratings.istioinaction.io but doesn't produce anything for team A or B to consume.
 
 
-TODO: add a diagram for the gateway team and team A, B and C
+![Gateway and 3 teams](./images/gateway-and-3-teams.png)
 
 The lab below assumes you have Istio 1.12.1 installed with revision 1-12-1 with istio ingress gateway in the istio-ingress namespace.  If you don't, you can setup Istio using the steps below with `istioctl` version 1.12.1:
 
 ```bash
 kubectl create ns istio-system
 kubectl apply -f ../deploy-istio/labs/02/istiod-service.yaml
-istioctl install -y -n istio-system -f ../deploy-istio/labs/02/control-plane.yaml --revision 1-12-1
+istioctl install -y -n istio-system -f labs/01/control-plane.yaml --revision 1-12-1
 kubectl create namespace istio-ingress
-istioctl install -y -n istio-ingress -f ../deploy-istio/labs/04/ingress-gateways.yaml --revision 1-12-1
+istioctl install -y -n istio-ingress -f labs/01/ingress-gateway.yaml --revision 1-12-1
 ```
 ### Set up the Kubernetes services for teams
 
@@ -150,7 +150,7 @@ kubectl create namespace cert-manager
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
 # do the actual installation:
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.2.0 --create-namespace --set installCRDs=true
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --create-namespace --set installCRDs=true
 # wait for cert-manager pods to come up
 kubectl wait --for=condition=Ready pod --all -n cert-manager
 # install root certs/key (just for the lab, you'd use Vault, LetsEncrypt, or your own PKI in production)
@@ -352,7 +352,7 @@ spec:
 
 If you recall, you used `VirtualService` delegation for the `ratings-gateway` so the `ratings.istioinaction.io` hostname is defined in the `ratings-vs.yaml` deployed in the `istio-ingress` namespace. The `ratings-delegated-vs.yaml` file doesn't configure `hosts` or `gateways` field.  The fix is to update `ratings-ns/ratings.istioinaction.io` to `ratings.istioinaction.io` because the `ratings-vs.yaml` is deployed in the same namespace as the `ratings-gateway`.
 
-TODO: draw a diagram here for VS delegation
+![Virtual Service Delegation](./images/vs-delegation.png)
 
 Deploy the correct `ratings-gateway` with `hosts` set to `ratings.istioinaction.io`:
 
@@ -380,7 +380,7 @@ When you run the curl command from outside of the Kubernetes cluter to access th
 
 Wouldn't be nice if you can have the global host name `recommendation.istioinaction.io` for the `recommendation` service, regardless of where the clients are calling it whether they are from inside of the mesh or outside of the mesh? You can use Istio's support for global host name to configure this.
 
-TODO: a diagram for this, clients inside the mesh and clients outside of mesh.
+![In mesh client and out of mesh client](./images/global-host.png)
 
 First, we need to enable the `ISTIO_META_DNS_AUTO_ALLOCATE` configuration in Istio control plane's `proxyMetadata`, so that Istio can automatically allocat IP addresses for ServiceEntrys that do not explicitly define one.  Open up the `control-plane.yaml`:
 

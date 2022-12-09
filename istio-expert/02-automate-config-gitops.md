@@ -122,13 +122,13 @@ Login using username: `admin` and password: `admin` .
 # Deploy an application and it's Istio resrouces
 
 1. Select **CREATE APPLICATION**
-2. Set **Project** to `default`
-3. Set **Repository URL** to `https://github.com/rvennam/argo-helloworld`
-4. Set **Path** to `.`
-5. Set **Sync Policy** to Automatic
+2. Set **Application Name** to `helloworld`
+3. Set **Project** to `default`
+4. Set **Sync Policy** to Automatic
+5. Set **Repository URL** to `https://github.com/solo-io/gitops-library`
+5. Set **Path** to `helloworld/overlay/app/argo-rollout/namespace/default/`
 6. Set **Cluster URL** to `https://kubernetes.default.svc`
 7. Click **Create** at the top
-
 This should deploy an helloworld application to the default namespace. Check the pods:
 
 ```

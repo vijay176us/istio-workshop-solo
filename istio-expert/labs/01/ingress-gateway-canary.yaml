@@ -1,7 +1,7 @@
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 metadata:
-  name: gateways
+  name: gateways-canary
 spec:
   profile: empty
   components:
@@ -13,6 +13,9 @@ spec:
         # Set a unique label for the gateway. This is required to ensure Gateways
         # can select this workload
         istio: ingressgateway
+      k8s:
+        service:
+          type: ClusterIP
   values:
     gateways:
       istio-ingressgateway:

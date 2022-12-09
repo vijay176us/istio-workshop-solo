@@ -171,7 +171,7 @@ Point the default namespace injection label to the 1-21-1 revision injector:
 
 ```bash
 kubectl label namespace default istio.io/rev=1-12-1 --overwrite
-``
+```
 
 Then, recreate the httpbin pods
 
