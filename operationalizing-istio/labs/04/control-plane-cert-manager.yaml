@@ -26,7 +26,7 @@ spec:
         overlays:
         - apiVersion: apps/v1
           kind: Deployment
-          name: istiod-1-16
+          name: istiod-${ISTIO_REVISION}
           patches:
 
             # Mount istiod serving and webhook certificate from Secret mount
