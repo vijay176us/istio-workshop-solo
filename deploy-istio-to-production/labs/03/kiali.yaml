@@ -7,6 +7,8 @@ spec:
   istio_namespace: istio-system
   istio_component_namespaces:
     prometheus: prometheus
+  server:
+    cors_allow_all: true
   auth:
     strategy: token
   deployment:
